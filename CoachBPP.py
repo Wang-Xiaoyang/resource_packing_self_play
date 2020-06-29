@@ -11,6 +11,8 @@ from tqdm import tqdm
 from Arena import Arena
 from MCTS_bpp import MCTS
 
+import wandb
+
 log = logging.getLogger(__name__)
 
 
@@ -29,6 +31,7 @@ class CoachBPP():
         # Q: in BPP, we could generate different item sets. Do we treat each item set as a different problem? or do we change item sets during 
         # training?
         self.rewards_list = []
+        self.ep_score = 0
         self.args = args
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
@@ -59,9 +62,9 @@ class CoachBPP():
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
-            temp = int(episodeStep < self.args.tempThreshold)
+            greedy_a = int(episodeStep < self.args.epStepThreshold)
 
-            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, temp=temp)
+            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, temp=greedy_a)
             sym = self.game.getSymmetries(board, pi)
             for b, p in sym:
                 state_sym = self.game.getBinItem(b, items_list_board)
@@ -71,9 +74,14 @@ class CoachBPP():
             board, items_list_board = self.game.getNextState(board, action, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
 
-            r = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
+            r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
 
             if r != 0:
+                self.rewards_list.append(score)
+                # if score  = [], does len(self.rewards_list) change?
+                if len(self.rewards_list) > self.args.numScoresForRank:
+                    self.rewards_list.pop(0)
+                self.ep_score = score
                 return [(x[0], x[1], r) for x in trainExamples]
 
     def learn(self):
@@ -89,6 +97,7 @@ class CoachBPP():
             # bookkeeping
             log.info(f'Starting Iter #{i} ...')
             # examples of the iteration
+            ep_scores = []
             if not self.skipFirstSelfPlay or i > 1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
 
@@ -96,7 +105,12 @@ class CoachBPP():
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     # [board, action_prob, win/lose score] in iterationTrainExamples
                     iterationTrainExamples += self.executeEpisode()
-
+                    ep_scores.append(self.ep_score)
+                
+                print('reward buffer for ranked reward: ', self.rewards_list)
+                
+                wandb.log({"mean reward": np.mean(ep_scores)})
+                print('-----------mean reward of Iter ', i, 'is-----------', np.mean(ep_scores))
                 # save the iteration examples to the history 
                 # this is the examples used for training
                 self.trainExamplesHistory.append(iterationTrainExamples)
@@ -124,12 +138,10 @@ class CoachBPP():
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             log.info('PITTING AGAINST PREVIOUS VERSION')
-            arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                          lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+            n_win = self.arena_playing(pmcts, nmcts)
 
-            log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-            if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
+            log.info('WIN: %d' % (n_win))
+            if n_win == 0:
                 log.info('REJECTING NEW MODEL')
                 self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             else:
@@ -165,3 +177,58 @@ class CoachBPP():
 
             # examples based on the model were already collected (loaded)
             self.skipFirstSelfPlay = True
+
+    def arena_playing(self, pmcts, nmcts):
+        # if mean(scores)_n > mean(scores)_p, return 1, accept new model
+        p_scores = []
+        n_scores = []
+        for i in range(self.args.arenaCompare):
+            # pmcts
+            board = self.game.getInitBoard()
+            items_list_board = self.game.getInitItems(self.items_list)
+            episodeStep = 0
+
+            bin_items_state = self.game.getBinItem(board, items_list_board)
+
+            game_ended = 0
+            while game_ended == 0:
+                episodeStep += 1
+                
+                temp = int(episodeStep < self.args.tempThreshold)
+
+                pi = pmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, temp=temp)
+
+                action = np.random.choice(len(pi), p=pi)
+                board, items_list_board = self.game.getNextState(board, action, items_list_board)
+                next_bin_items_state = self.game.getBinItem(board, items_list_board)
+                bin_items_state = next_bin_items_state
+                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
+            p_scores.append(score)
+
+        for j in range(self.args.arenaCompare):
+            # nmcts
+            board = self.game.getInitBoard()
+            items_list_board = self.game.getInitItems(self.items_list)
+            episodeStep = 0
+
+            bin_items_state = self.game.getBinItem(board, items_list_board)
+
+            game_ended = 0
+            while game_ended == 0:
+                episodeStep += 1
+                
+                temp = int(episodeStep < self.args.tempThreshold)
+
+                pi = nmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, temp=temp)
+
+                action = np.random.choice(len(pi), p=pi)
+                board, items_list_board = self.game.getNextState(board, action, items_list_board)
+                next_bin_items_state = self.game.getBinItem(board, items_list_board)
+                bin_items_state = next_bin_items_state
+                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
+            n_scores.append(score)
+
+        if np.mean(n_scores) > np.mean(p_scores):
+            return 1
+        else:
+            return 0

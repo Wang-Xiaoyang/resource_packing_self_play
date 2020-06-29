@@ -25,14 +25,14 @@ class MCTS():
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
 
-    def getActionProb(self, canonicalBoard, totalArea, rewardsList, temp=1):
+    def getActionProb(self, canonicalBoard, totalArea, rewardsList, greedy_a=1):
         """
         This function performs numMCTSSims simulations of MCTS starting from
         canonicalBoard.
 
         Returns:
             probs: a policy vector where the probability of the ith action is
-                   proportional to Nsa[(s,a)]**(1./temp)
+                   proportional to Nsa[(s,a)]**(1./greedy_a)
         """
         for i in range(self.args.numMCTSSims):
             self.search(canonicalBoard, totalArea, rewardsList)
@@ -40,14 +40,15 @@ class MCTS():
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
 
-        if temp == 0:
+        if greedy_a == 0:
+            # choose action greedily
             bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
             bestA = np.random.choice(bestAs)
             probs = [0] * len(counts)
             probs[bestA] = 1
             return probs
 
-        counts = [x ** (1. / temp) for x in counts]
+        counts = [x ** (1. / greedy_a) for x in counts]
         counts_sum = float(sum(counts))
         probs = [x / counts_sum for x in counts]
         return probs
@@ -75,7 +76,7 @@ class MCTS():
         s = self.game.stringRepresentation(canonicalBoard)
 
         if s not in self.Es:
-            assert len(canonicalBoard) == 11
+            assert len(canonicalBoard) == (args.numItems+args.numBins)
             self.Es[s], _ = self.game.getGameEnded(canonicalBoard, totalArea, rewardsList, self.args.alpha)
         if self.Es[s] != 0:
             # terminal node

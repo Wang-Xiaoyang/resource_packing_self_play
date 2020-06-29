@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 import matplotlib.colorbar as cbar
 
 numAxises = 2 # 2D
-numItems = 10
+numItems = 2
 binWidth, binHeight = 10, 10
 np.random.seed(100)
 

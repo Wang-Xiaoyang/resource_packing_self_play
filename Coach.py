@@ -86,9 +86,11 @@ class Coach():
 
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
+                    # [board, action_prob, win/lose score] in iterationTrainExamples
                     iterationTrainExamples += self.executeEpisode()
 
                 # save the iteration examples to the history 
+                # this is the examples used for training
                 self.trainExamplesHistory.append(iterationTrainExamples)
 
             if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:

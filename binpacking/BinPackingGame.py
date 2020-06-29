@@ -110,10 +110,10 @@ class BinPackingGame(Game):
 
     def getGameEnded(self, total_board, items_total_area, rewards_list, alpha):
         # return 0 if not ended, 1 if win (higher than 0.75 reward), -1 if lost
-        assert(len(total_board) == 11)
+        assert(len(total_board) == self.num_items+self.n)
         cur_item = self.getCurItem(total_board[1:])
         if cur_item < self.num_items-1:
-            return 0, rewards_list
+            return 0, []
         else:
             return self.getRankedReward(total_board, items_total_area, rewards_list, alpha)
 
@@ -150,17 +150,18 @@ class BinPackingGame(Game):
 
     def getRankedReward(self, total_board, items_total_area, rewards_list, alpha):
         # alpha: the ranked reward parameter
+        rewards_list = rewards_list.copy()
         r = sum(sum(total_board[0,:])) / items_total_area
         if len(rewards_list) == 0:
-            return 1, rewards_list.append(r)
+            return 1, r
         sorted_reward = np.sort(rewards_list)
         bl = np.floor(len(sorted_reward) * alpha)
         if r > bl or r == 1:
-            return 1, rewards_list.append(r)
+            return 1, r
         elif r < bl:
-            return -1, rewards_list.append(r)
+            return -1, r
         else:
-            return np.random.choice([1, -1], p=[0.5, 0.5]), rewards_list.append(r)
+            return np.random.choice([1, -1], p=[0.5, 0.5]), r
 
     def stringRepresentation(self, board):
         board_ = np.array([]).tostring()
