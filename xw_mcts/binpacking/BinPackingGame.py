@@ -92,13 +92,13 @@ class BinPackingGame(Game):
         # return a fixed size binary vector
         # size is the same with getActionSize; the value is 1 for valid moves in the 'board'
         valids = [0]*self.getActionSize()
+        valids[-1] = 1 # pass is always valid
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board[0])
         cur_item = self.getCurItem(board[1:])
         legal_moves = b.get_moves_for_square(board[1:], cur_item)
 
         if len(legal_moves)==0:
-            valids[-1]=1
             return np.array(valids)
         for x, y in legal_moves:
             valids[(x*self.bin_width+y)] = 1
