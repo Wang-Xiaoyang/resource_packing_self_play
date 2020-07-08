@@ -28,15 +28,10 @@ class BinPackingGame(Game):
         # (a,b) tuple
         return (self.bin_height, self.bin_width)
 
-    # def getActionSize(self):
-    #     # return number of actions
-    #     # total number of actions in this board
-    #     return self.bin_height*self.bin_width * self.num_items + 1 # ? do we need plus 1
-
     def getActionSize(self):
         # return number of actions
         # total number of actions in this board
-        return self.bin_height*self.bin_width + 1
+        return (self.bin_height*self.bin_width)*self.num_items + self.num_items
 
     def getInitItems(self, items_list):
         # items_list from item generator
@@ -46,25 +41,11 @@ class BinPackingGame(Game):
             item_board = self.getInitBoard()
             item_board[0:h, 0:w] = 1
             items_list_board += [item_board]
-        items_list_board[self.cur_item] *= -1
         return items_list_board
-
-    def getCurItem(self, items_list_board):
-        if np.min(items_list_board) == 0:
-            return self.num_items
-        items_list_board = items_list_board.copy()
-        items_ = np.sum(np.sum(items_list_board, axis=1), axis=1) >= 0
-        assert(sum(items_) == self.num_items-1)
-        cur_item = list(items_).index(False)
-        return cur_item
     
-    def getItemsUpdated(self, items_list_board):
+    def getItemsUpdated(self, items_list_board, cur_item):
         # update items without touching the board (bin).
-        cur_item = self.getCurItem(items_list_board)
-        items_list_board[cur_item] -= items_list_board[cur_item] # set to 0
-        cur_item += 1
-        if cur_item != len(items_list_board):
-            items_list_board[cur_item] *= -1        
+        items_list_board[cur_item] -= items_list_board[cur_item] # set to 0     
         return items_list_board
 
     def getNextState(self, board, action, items_list_board):
@@ -76,39 +57,48 @@ class BinPackingGame(Game):
         items_list_board = np.copy(items_list_board)
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board)
-        cur_item = self.getCurItem(items_list_board)
-        assert cur_item != self.num_items #? - dowithout packing - for action 'pass'
+        cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)
+        if cur_item == self.num_items: # pass item or do nothing
+            if placement == self.num_items:
+                return b.pieces, items_list_board
+            else:
+                items_list_board = self.getItemsUpdated(items_list_board, placement)
+                return b.pieces, items_list_board
         item = items_list_board[cur_item] # board format
-        assert sum(sum(item)) < 0
-        w = -sum(item[0,:])
-        h = -sum(item[:,0])
-        if action != self.getActionSize()-1:
-            move = (int(action/self.bin_width), action%self.bin_width)
-            b.execute_move(move, w, h)
-        items_list_board = self.getItemsUpdated(items_list_board)
+        assert sum(sum(item)) > 0 # must choose a valid item
+        # item is valid
+        w = sum(item[0,:])
+        h = sum(item[:,0])
+        move = (int(placement/self.bin_width), placement%self.bin_width)
+        b.execute_move(move, w, h)
+        items_list_board = self.getItemsUpdated(items_list_board, cur_item)
         return (b.pieces, items_list_board)
 
     def getValidMoves(self, board):
         # return a fixed size binary vector
         # size is the same with getActionSize; the value is 1 for valid moves in the 'board'
         valids = [0]*self.getActionSize()
-        valids[-1] = 1 # pass is always valid
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board[0])
-        cur_item = self.getCurItem(board[1:])
-        legal_moves = b.get_moves_for_square(board[1:], cur_item)
-
+        pass_valids = [0] * self.num_items
+        legal_moves = []
+        for item in range(self.num_items):
+            if sum(sum(board[item+1])) == 0:
+                continue
+            legal_moves += b.get_moves_for_square(board[1:], item)
+            pass_valids[item] = 1
         if len(legal_moves)==0:
+            valids[-self.num_items:] = pass_valids
             return np.array(valids)
-        for x, y in legal_moves:
-            valids[(x*self.bin_width+y)] = 1
+        for item, x, y in legal_moves:
+            valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
+            valids[-self.num_items:] = pass_valids
         return np.array(valids)
 
     def getGameEnded(self, total_board, items_total_area, rewards_list, alpha):
         # return 0 if not ended, 1 if win (higher than 0.75 reward), -1 if lost
         assert(len(total_board) == self.num_items+self.n)
-        cur_item = self.getCurItem(total_board[1:])
-        if cur_item < self.num_items:
+        if sum(sum(sum(total_board[1:]))) != 0:
             return 0, []
         else:
             return self.getRankedReward(total_board, items_total_area, rewards_list, alpha)
@@ -124,24 +114,44 @@ class BinPackingGame(Game):
 
         # mirror, rotational
         assert(len(pi) == self.getActionSize())  # 1 for pass
-        pi_board = np.reshape(pi[:-1], (self.bin_height, self.bin_width))
+        size_b = self.bin_width * self.bin_height
+        pi_board = []
+        for item in range(self.num_items):
+            pi_board_ = np.reshape(pi[item*size_b:(item+1)*size_b], (self.bin_height, self.bin_width))
+            pi_board.append(pi_board_)
         l = []
         for i in [2, 4]:
             newB = np.rot90(board, i)
-            newPi = np.rot90(pi_board, i)
-            l += [(newB, list(newPi.ravel()) + [pi[-1]])]
+            newPi = []
+            pi_board_c = pi_board.copy()
+            for item in range(self.num_items):
+                pi_board_ = pi_board_c[item]
+                newPi_ = np.rot90(pi_board_, i)
+                newPi += list(newPi_.ravel())
+            l += [(newB, list(np.copy(newPi)) +  pi[-self.num_items:])]
         for i in [2, 4]:
             newB = np.rot90(board, i)
-            newPi = np.rot90(pi_board, i)
             newB = np.fliplr(newB)
-            newPi = np.fliplr(newPi)
-            l += [(newB, list(newPi.ravel()) + [pi[-1]])]
-        for i in [2, 4]:
-            newB = np.rot90(board, i)
-            newPi = np.rot90(pi_board, i)
-            newB = np.flipud(newB)
-            newPi = np.flipud(newPi)
-            l += [(newB, list(newPi.ravel()) + [pi[-1]])]
+            newPi = []
+            pi_board_c = pi_board.copy()
+            for item in range(self.num_items):
+                pi_board_ = pi_board_c[item]
+                newPi_ = np.rot90(pi_board_, i)
+                newPi_ = np.fliplr(newPi_)
+                newPi += list(newPi_.ravel())
+            l += [(newB, list(np.copy(newPi)) +  pi[-self.num_items:])]
+        # duplicated!
+        # for i in [2, 4]:
+        #     newB = np.rot90(board, i)
+        #     newB = np.flipud(newB)
+        #     newPi = []
+        #     pi_board_c = pi_board.copy()
+        #     for item in range(self.num_items):
+        #         pi_board_ = pi_board_c[item]
+        #         newPi_ = np.rot90(pi_board_, i)
+        #         newPi_ = np.flipud(newPi_)
+        #         newPi += list(newPi_.ravel())
+        #     l += [(newB, list(np.copy(newPi)) +  pi[-self.num_items:])]
         return l
 
     def getRankedReward(self, total_board, items_total_area, rewards_list, alpha):

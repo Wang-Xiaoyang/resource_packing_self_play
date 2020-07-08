@@ -87,19 +87,51 @@ class Bin():
     #                     moves.append((item_idx, i, j))
     #     return moves
 
+    def get_adjacency(self, i, j, h, w):
+        adjacent_direction = 0
+        # get adjacency information for current item (h, w) if placed in (i, j)
+        # up
+        if i == 0:
+            adjacent_direction += 1
+        else:
+            if sum(self[i-1, j:j+w]) != 0:
+                adjacent_direction += 1
+        # down
+        if i+h == self.bin_height:
+            adjacent_direction += 1
+        else:
+            if sum(self[i+h, j:j+w]) != 0:
+                adjacent_direction += 1
+        # left
+        if j == 0:
+            adjacent_direction += 1
+        else:
+            if sum(self[i:i+h, j-1]) != 0:
+                adjacent_direction += 1
+        # right
+        if j+w == self.bin_width:
+            adjacent_direction += 1
+        else:
+            if sum(self[i:i+h, j+w]) != 0:
+                adjacent_direction += 1
+        # at least having adjacency in two directions
+        return adjacent_direction >= 2
+
     def get_moves_for_square(self, items_list_board, item_idx):
         # get moves for each available item -xw
         # then get all valid moves in get_legal_moves
         item = items_list_board[item_idx] # board format
-        assert sum(sum(item)) < 0
-        w = -sum(item[0,:])
-        h = -sum(item[:,0]) 
+        assert sum(sum(item)) > 0
+        w = sum(item[0,:])
+        h = sum(item[:,0]) 
         moves = []
         # current item to be placed
         for i in range(self.bin_height-h+1):
             for j in range(self.bin_width-w+1):
                 if sum(sum(self[i:i+h, j:j+w])) == 0:
-                    moves.append((i, j))
+                    adjacent = self.get_adjacency(i, j, h, w)
+                    if adjacent:
+                        moves.append((item_idx, i, j))
         return moves
 
     def execute_move(self, move, w, h):
