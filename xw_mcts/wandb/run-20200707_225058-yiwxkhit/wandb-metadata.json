@@ -1,0 +1,27 @@
+{
+    "root": "/home/xw17070/Documents/alpha-zero-general",
+    "program": "/home/xw17070/Documents/alpha-zero-general/xw_mcts/main_bpp.py",
+    "git": {
+        "remote": "https://github.com/Wang-Xiaoyang/alpha-zero-general.git",
+        "commit": "c3d71253a07b574b1d178ede99bdd8bcb9918c85"
+    },
+    "email": "xywang1211@outlook.com",
+    "codePath": "xw_mcts/main_bpp.py",
+    "startedAt": "2020-07-07T22:50:58.830814",
+    "host": "IT073280",
+    "username": "xw17070",
+    "executable": "/home/xw17070/anaconda3/envs/alpha_zero/bin/python",
+    "os": "Linux-5.3.0-62-generic-x86_64-with-debian-buster-sid",
+    "python": "3.6.8",
+    "gpu": "GeForce GTX 1080",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": "10.0.130",
+    "args": [],
+    "state": "finished",
+    "jobType": null,
+    "mode": "run",
+    "project": "ranked-reward-bin-packing",
+    "heartbeatAt": "2020-07-07T22:54:26.884445",
+    "exitcode": 0
+}

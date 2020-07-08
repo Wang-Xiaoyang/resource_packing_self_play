@@ -1,0 +1,94 @@
+2020-07-07 23:50:59,423 DEBUG   MainThread:996 [wandb_config.py:_load_defaults():122] no defaults not found in config-defaults.yaml
+2020-07-07 23:50:59,433 DEBUG   MainThread:996 [meta.py:setup():100] code probe starting
+2020-07-07 23:50:59,435 DEBUG   MainThread:996 [meta.py:_setup_code_git():49] probe for git information
+2020-07-07 23:50:59,447 DEBUG   MainThread:996 [meta.py:_setup_code_program():58] save program starting
+2020-07-07 23:50:59,447 DEBUG   MainThread:996 [meta.py:_setup_code_program():60] save program starting: /home/xw17070/Documents/alpha-zero-general/xw_mcts/main_bpp.py
+2020-07-07 23:50:59,447 DEBUG   MainThread:996 [meta.py:_setup_code_program():68] save program saved: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/code/xw_mcts/main_bpp.py
+2020-07-07 23:50:59,448 DEBUG   MainThread:996 [meta.py:_setup_code_program():70] save program
+2020-07-07 23:50:59,448 DEBUG   MainThread:996 [meta.py:setup():122] code probe done
+2020-07-07 23:50:59,458 DEBUG   MainThread:996 [run_manager.py:__init__():545] Initialized sync for ranked-reward-bin-packing/yiwxkhit
+2020-07-07 23:50:59,466 INFO    MainThread:996 [run_manager.py:wrap_existing_process():1147] wrapping existing process 968
+2020-07-07 23:50:59,466 WARNING MainThread:996 [io_wrap.py:register():104] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
+2020-07-07 23:50:59,640 INFO    MainThread:996 [run_manager.py:init_run():926] system metrics and metadata threads started
+2020-07-07 23:50:59,641 INFO    MainThread:996 [run_manager.py:init_run():965] upserting run before process can begin, waiting at most 10 seconds
+2020-07-07 23:50:59,975 INFO    Thread-19 :996 [run_manager.py:_upsert_run():1050] saving patches
+2020-07-07 23:51:00,437 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/config.yaml
+2020-07-07 23:51:02,650 INFO    Thread-19 :996 [run_manager.py:_upsert_run():1054] saving pip packages
+2020-07-07 23:51:02,651 INFO    Thread-19 :996 [run_manager.py:_upsert_run():1056] initializing streaming files api
+2020-07-07 23:51:02,653 INFO    Thread-19 :996 [run_manager.py:_upsert_run():1063] unblocking file change observer, beginning sync with W&B servers
+2020-07-07 23:51:02,654 ERROR   MainThread:996 [run_manager.py:init_run():970] Failed to connect to W&B servers after 10 seconds.                    Letting user process proceed while attempting to reconnect.
+2020-07-07 23:51:02,671 INFO    MainThread:996 [run_manager.py:wrap_existing_process():1164] informing user process we are ready to proceed
+2020-07-07 23:51:02,680 INFO    MainThread:996 [run_manager.py:_sync_etc():1271] entering loop for messages from user process
+2020-07-07 23:51:02,906 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/code/xw_mcts/main_bpp.py
+2020-07-07 23:51:02,906 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:51:02,907 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/diff.patch
+2020-07-07 23:51:02,907 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:02,908 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/code
+2020-07-07 23:51:02,908 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/code/xw_mcts
+2020-07-07 23:51:02,908 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/diff.patch
+2020-07-07 23:51:02,909 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/upstream_diff_d4776922326c21430d29ed206724a93fa8f92a8d.patch
+2020-07-07 23:51:03,436 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/upstream_diff_d4776922326c21430d29ed206724a93fa8f92a8d.patch
+2020-07-07 23:51:03,436 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:03,437 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/config.yaml
+2020-07-07 23:51:03,437 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/requirements.txt
+2020-07-07 23:51:05,445 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:06,446 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:07,446 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:08,447 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:09,448 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:10,448 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:11,449 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:12,449 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:13,450 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:14,450 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:15,451 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:16,452 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:51:16,452 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:17,452 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:18,453 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:19,453 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:20,454 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:21,454 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:22,455 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:23,456 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:24,456 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:25,457 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:26,457 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:27,458 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:28,459 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:28,459 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:51:29,459 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:30,460 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:31,460 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-history.jsonl
+2020-07-07 23:51:31,462 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/output.log
+2020-07-07 23:51:31,462 INFO    Thread-8  :996 [run_manager.py:_on_file_created():679] file/dir created: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-summary.json
+2020-07-07 23:51:32,463 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:51:48,519 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:51:58,541 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:52:04,555 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:52:20,594 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:52:29,618 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:52:36,637 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:52:52,672 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:52:59,690 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:53:08,713 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:53:24,748 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:53:30,779 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:53:40,799 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:53:56,840 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:54:00,850 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:54:11,875 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:54:26,482 INFO    MainThread:996 [run_manager.py:_sync_etc():1380] closing log streams and sending exitcode to W&B
+2020-07-07 23:54:26,483 INFO    MainThread:996 [run_manager.py:shutdown():1070] shutting down system stats and metadata service
+2020-07-07 23:54:26,885 INFO    MainThread:996 [run_manager.py:shutdown():1084] stopping streaming files and file change observer
+2020-07-07 23:54:26,894 INFO    Thread-8  :996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:54:26,894 INFO    MainThread:996 [run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:54:29,061 INFO    MainThread:996 [run_manager.py:_sync_etc():1399] rendering summary
+2020-07-07 23:54:29,063 INFO    MainThread:996 [run_manager.py:_sync_etc():1432] syncing files to cloud storage
+2020-07-07 23:54:38,102 INFO    MainThread:996 [run_manager.py:_sync_etc():1447] syncing complete: https://app.wandb.ai/xiaoyang/ranked-reward-bin-packing/runs/yiwxkhit
+file change observer
+2020-07-07 23:54:26,894 INFO    Thread-8  :996 [yiwxkhit:run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-events.jsonl
+2020-07-07 23:54:26,894 INFO    MainThread:996 [yiwxkhit:run_manager.py:_on_file_modified():690] file/dir modified: /home/xw17070/Documents/alpha-zero-general/xw_mcts/wandb/run-20200707_225058-yiwxkhit/wandb-metadata.json
+2020-07-07 23:54:29,061 INFO    MainThread:996 [yiwxkhit:run_manager.py:_sync_etc():1399] rendering summary
+2020-07-07 23:54:29,063 INFO    MainThread:996 [yiwxkhit:run_manager.py:_sync_etc():1432] syncing files to cloud storage
+2020-07-07 23:54:38,102 INFO    MainThread:996 [yiwxkhit:run_manager.py:_sync_etc():1447] syncing complete: https://app.wandb.ai/xiaoyang/ranked-reward-bin-packing/runs/yiwxkhit
