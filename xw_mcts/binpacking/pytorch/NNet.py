@@ -18,7 +18,7 @@ class NNetWrapper(NeuralNet):
     def __init__(self, game, args):
         self.args = args
         self.nnet = bnnet(game, self.args)
-        self.board_x, self.board_y = game.getBoardSize()
+        self.board_h, self.board_w = game.getBoardSize()
         self.action_size = game.getActionSize()
 
         if self.args.cuda:
@@ -76,7 +76,7 @@ class NNetWrapper(NeuralNet):
         # preparing input
         board = torch.FloatTensor(board.astype(np.float64))
         if self.args.cuda: board = board.contiguous().cuda(0)
-        board = board.view(-1, (self.args.num_items+self.args.num_bins), self.board_x, self.board_y)
+        board = board.view(-1, (self.args.num_items+self.args.num_bins), self.board_h, self.board_w)
         self.nnet.eval()
         with torch.no_grad():
             pi, v = self.nnet(board)
