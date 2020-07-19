@@ -18,7 +18,7 @@ wandb.init(entity="xiaoyang",
 wandb.config.binW, wandb.config.binH = 10, 10
 wandb.config.numItems, wandb.config.numBins = 5, 1
 wandb.config.numIters = 500 #50
-wandb.config.numEps = 50
+wandb.config.numEps = 20
 wandb.config.epStepThreshold = 100  # choose actions greedily after # steps in one episode; set to 100: always stochastic; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
@@ -35,6 +35,7 @@ wandb.config.epochs = 10
 wandb.config.batch_size = 64
 wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
+wandb.config.nnet_type = 'ResNet'
 
 config = wandb.config
 

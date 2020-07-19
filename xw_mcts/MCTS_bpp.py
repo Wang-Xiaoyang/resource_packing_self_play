@@ -86,6 +86,8 @@ class MCTS():
             # leaf node
             self.Ps[s], v = self.nnet.predict(canonicalBoard)
             valids = self.game.getValidMoves(canonicalBoard)
+            if sum(valids) == 0:
+                aaa = 3
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
@@ -121,6 +123,8 @@ class MCTS():
                     best_act = a
 
         a = best_act
+        if a < 0:
+            aaa = 3
         board, items_list_board = self.game.getNextState(canonicalBoard[0], a, canonicalBoard[1:])
         next_bin_items_state = self.game.getBinItem(board, items_list_board)
 

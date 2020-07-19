@@ -40,7 +40,7 @@ class CoachBPP():
 
         self.gen = gen
         random.seed(args.seed)
-        self.seeds = random.sample(range(0, 100), 50)
+        self.seeds = random.sample(range(0, 10000), 500)
 
     def executeEpisode(self):
         """
@@ -116,11 +116,11 @@ class CoachBPP():
                     iterationTrainExamples += self.executeEpisode()
                     ep_scores.append(self.ep_score)
                 
-                    # self.rewards_list.append(np.mean(ep_scores))
-                    self.rewards_list.append(self.ep_score)
-                    # if score  = [], does len(self.rewards_list) change?
-                    if len(self.rewards_list) > self.args.numScoresForRank:
-                        self.rewards_list.pop(0)
+                self.rewards_list.append(np.mean(ep_scores))
+                # self.rewards_list.append(self.ep_score)
+                # if score  = [], does len(self.rewards_list) change?
+                if len(self.rewards_list) > self.args.numScoresForRank:
+                    self.rewards_list.pop(0)
                 # print('reward buffer for ranked reward: ', self.rewards_list)                
                 wandb.log({"mean reward": np.mean(ep_scores)})
                 percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
@@ -247,7 +247,10 @@ class CoachBPP():
                 game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
             n_scores.append(score)
 
-        if np.mean(n_scores) >= np.mean(p_scores):
+        percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
+        percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
+
+        if np.mean(n_scores) > np.mean(p_scores) and percentage_optim_n >= percentage_optim_p:
             return 1
         else:
             return 0
