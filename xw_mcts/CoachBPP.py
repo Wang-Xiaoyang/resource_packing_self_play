@@ -67,14 +67,14 @@ class CoachBPP():
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
-            greedy_a = int(episodeStep < self.args.epStepThreshold)
 
-            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=greedy_a)
+            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list)
             sym = self.game.getSymmetries(board, pi)
             for b, p in sym:
                 state_sym = self.game.getBinItem(b, items_list_board)
                 trainExamples.append([state_sym, p, None])
-
+            
+            np.random.seed()
             action = np.random.choice(len(pi), p=pi)
             board, items_list_board = self.game.getNextState(board, action, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -246,7 +246,7 @@ class CoachBPP():
         # percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
         # percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
 
-        if np.mean(n_scores) > np.mean(p_scores):
+        if np.mean(n_scores) >= np.mean(p_scores):
             return 1
         else:
             return 0
