@@ -17,9 +17,9 @@ wandb.init(entity="xiaoyang",
 # wandb config parameters
 wandb.config.binW, wandb.config.binH = 10, 10
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
-wandb.config.numItems, wandb.config.numBins = 10, 1
+wandb.config.numItems, wandb.config.numBins = 8, 1
 wandb.config.numIters = 500 #50
-wandb.config.numEps = 10
+wandb.config.numEps = 5
 wandb.config.epStepThreshold = 100  # choose actions greedily after # steps in one episode; set to 100: always stochastic; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000

@@ -246,7 +246,7 @@ class CoachBPP():
         # percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
         # percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
 
-        if np.mean(n_scores) >= np.mean(p_scores):
+        if np.mean(n_scores) > np.mean(p_scores):
             return 1
         else:
             return 0

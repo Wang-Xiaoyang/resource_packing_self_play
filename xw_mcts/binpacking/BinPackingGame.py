@@ -57,13 +57,11 @@ class BinPackingGame(Game):
         items_list_board = np.copy(items_list_board)
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board)
+        # action: item*(bin_h*bin_w) + [0:num_items] (for pass)
         cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)
         if cur_item == self.num_items: # pass item or do nothing
-            if placement == self.num_items:
-                return b.pieces, items_list_board
-            else:
-                items_list_board = self.getItemsUpdated(items_list_board, placement)
-                return b.pieces, items_list_board
+            items_list_board = self.getItemsUpdated(items_list_board, placement)
+            return b.pieces, items_list_board
         item = items_list_board[cur_item] # board format
         assert sum(sum(item)) > 0 # must choose a valid item
         # item is valid
@@ -172,7 +170,7 @@ class BinPackingGame(Game):
 
         if sum(sum(total_board[0,:])) != items_total_area:
             # some items are discarded instead of being placed in the bin
-            r = 0
+            r = items_total_area / (self.bin_width*self.bin_height*2) # here 2 is a penalty parameter - indicating not all items are placed
         else:
             a = self.get_minimal_bin(total_board[0,:])
             r = items_total_area / (a*a)
