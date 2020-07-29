@@ -154,14 +154,34 @@ class BinPackingGame(Game):
         #     l += [(newB, list(np.copy(newPi)) +  pi[-self.num_items:])]
         return l
 
+    def get_minimal_bin(self, board):
+        for i in reversed(range(self.bin_height)):
+            if sum(board[i,:]) > 0:
+                break
+        h = i + 1
+        for j in reversed(range(self.bin_width)):
+            if sum(board[:,j]) > 0:
+                break
+        w = j + 1
+        a = max([h, w])
+        return a
+    
     def getRankedReward(self, total_board, items_total_area, rewards_list, alpha):
         # alpha: the ranked reward parameter
         rewards_list = rewards_list.copy()
-        r = sum(sum(total_board[0,:])) / items_total_area
+
+        if sum(sum(total_board[0,:])) != items_total_area:
+            # some items are discarded instead of being placed in the bin
+            r = 0
+        else:
+            a = self.get_minimal_bin(total_board[0,:])
+            r = items_total_area / (a*a)
+        # r = sum(sum(total_board[0,:])) / items_total_area
+
         if len(rewards_list) == 0:
             return 1, r
         sorted_reward = np.sort(rewards_list)
-        bl = np.floor(len(sorted_reward) * alpha)
+        bl = sorted_reward[int(np.floor(len(sorted_reward) * alpha))-1]
         if r > bl or r == 1:
             return 1, r
         elif r < bl:

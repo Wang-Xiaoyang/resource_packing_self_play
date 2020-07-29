@@ -108,9 +108,12 @@ class CoachBPP():
 
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
-                    # re-generate items
-                    generator_seed = np.random.choice(self.seeds)
-                    items_list = self.gen.items_generator(generator_seed)
+                    # # 1. re-generate items: different game
+                    # generator_seed = np.random.choice(self.seeds)
+                    # items_list = self.gen.items_generator(generator_seed)
+                    # self.items_list = np.copy(items_list)
+                    # 2. same game (items shapes fixed)
+                    items_list = self.gen.items_generator(self.args.seed)
                     self.items_list = np.copy(items_list)
                     # [board, action_prob, win/lose score] in iterationTrainExamples
                     iterationTrainExamples += self.executeEpisode()
@@ -139,7 +142,7 @@ class CoachBPP():
                 self.trainExamplesHistory.pop(0)
             # backup history to a file
             # NB! the examples were collected using the model from the previous iteration, so (i-1)
-            if i % 20 == 0:  
+            if i % 100 == 0:  
                 self.saveTrainExamples(i - 1)
 
             # shuffle examples before training
@@ -205,19 +208,15 @@ class CoachBPP():
             # pmcts
             board = self.game.getInitBoard()
             items_list_board = self.game.getInitItems(self.items_list)
-            episodeStep = 0
-
             bin_items_state = self.game.getBinItem(board, items_list_board)
 
             game_ended = 0
+
             while game_ended == 0:
-                episodeStep += 1
-                
-                greedy_a = int(episodeStep < self.args.epStepThreshold)
-
-                pi = pmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=greedy_a)
-
+                # choose action greedily
+                pi = pmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
                 action = np.random.choice(len(pi), p=pi)
+
                 board, items_list_board = self.game.getNextState(board, action, items_list_board)
                 next_bin_items_state = self.game.getBinItem(board, items_list_board)
                 bin_items_state = next_bin_items_state
@@ -234,23 +233,20 @@ class CoachBPP():
 
             game_ended = 0
             while game_ended == 0:
-                episodeStep += 1
-                
-                greedy_a = int(episodeStep < self.args.epStepThreshold)
-
-                pi = nmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=greedy_a)
-
+                # choose action greedily
+                pi = nmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
                 action = np.random.choice(len(pi), p=pi)
+
                 board, items_list_board = self.game.getNextState(board, action, items_list_board)
                 next_bin_items_state = self.game.getBinItem(board, items_list_board)
                 bin_items_state = next_bin_items_state
                 game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
             n_scores.append(score)
 
-        percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
-        percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
+        # percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
+        # percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
 
-        if np.mean(n_scores) > np.mean(p_scores) and percentage_optim_n >= percentage_optim_p:
+        if np.mean(n_scores) >= np.mean(p_scores):
             return 1
         else:
             return 0
