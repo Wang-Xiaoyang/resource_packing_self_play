@@ -96,26 +96,26 @@ class Bin():
         else:
             if sum(self[i-1, j:j+w]) != 0:
                 adjacent_direction += 1
-        # down
-        if i+h == self.bin_height:
-            adjacent_direction += 1
-        else:
-            if sum(self[i+h, j:j+w]) != 0:
-                adjacent_direction += 1
+        # # down
+        # if i+h == self.bin_height:
+        #     adjacent_direction += 1
+        # else:
+        #     if sum(self[i+h, j:j+w]) != 0:
+        #         adjacent_direction += 1
         # left
         if j == 0:
             adjacent_direction += 1
         else:
             if sum(self[i:i+h, j-1]) != 0:
                 adjacent_direction += 1
-        # right
-        if j+w == self.bin_width:
-            adjacent_direction += 1
-        else:
-            if sum(self[i:i+h, j+w]) != 0:
-                adjacent_direction += 1
+        # # right
+        # if j+w == self.bin_width:
+        #     adjacent_direction += 1
+        # else:
+        #     if sum(self[i:i+h, j+w]) != 0:
+        #         adjacent_direction += 1
         # at least having adjacency in two directions
-        return adjacent_direction >= 2
+        return adjacent_direction == 2
 
     def get_moves_for_square(self, items_list_board, item_idx):
         # get moves for each available item -xw
