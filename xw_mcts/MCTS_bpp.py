@@ -76,8 +76,8 @@ class MCTS():
         s = self.game.stringRepresentation(canonicalBoard)
 
         if s not in self.Es:
-            assert len(canonicalBoard) == (self.args.numItems+self.args.numBins)
             self.Es[s], _ = self.game.getGameEnded(canonicalBoard, totalArea, rewardsList, self.args.alpha)
+            
         if self.Es[s] != 0:
             # terminal node
             return self.Es[s]
@@ -121,8 +121,7 @@ class MCTS():
                     best_act = a
 
         a = best_act
-        if a < 0:
-            aaa = 3
+
         board, items_list_board = self.game.getNextState(canonicalBoard[0], a, canonicalBoard[1:])
         next_bin_items_state = self.game.getBinItem(board, items_list_board)
 

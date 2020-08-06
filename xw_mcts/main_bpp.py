@@ -24,7 +24,7 @@ wandb.config.epStepThreshold = 100  # choose actions greedily after # steps in o
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
 wandb.config.numMCTSSims = 300 #100
-wandb.config.arenaCompare = 10 #20; for each agent
+wandb.config.arenaCompare = 5 #20; for each agent
 wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
 wandb.config.seed = 100
@@ -102,6 +102,9 @@ def main():
     log.info('Starting the learning process 🎉')
     c.learn()
 
+    # save trained model:
+    wandb.save(args.checkpoint + 'temp.pth.tar')
+    wandb.save(args.checkpoint + 'best.pth.tar')
 
 if __name__ == "__main__":
     main()

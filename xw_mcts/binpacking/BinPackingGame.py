@@ -113,13 +113,29 @@ class BinPackingGame(Game):
             valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
         return np.array(valids)
 
+    def has_valid_moves(self, board):
+        # return a fixed size binary vector
+        # size is the same with getActionSize; the value is 1 for valid moves in the 'board'
+        b = Bin(self.bin_width, self.bin_height)
+        b.pieces = np.copy(board[0])
+        moves = []
+        for item in range(self.num_items):
+            if sum(sum(board[item+1])) == 0:
+                # if all items placed, moves = []
+                continue
+            moves = b.get_moves_for_square(board[1:], item)
+            if len(moves) > 0:
+                break
+        return len(moves) > 0
+
     def getGameEnded(self, total_board, items_total_area, rewards_list, alpha):
         # return 0 if not ended, 1 if win (higher than 0.75 reward), -1 if lost
         assert(len(total_board) == self.num_items+self.n)
-        if sum(sum(sum(total_board[1:]))) != 0:
-            return 0, []
-        else:
+        if not self.has_valid_moves(total_board):
+            # no legal moves left, game ends
             return self.getRankedReward(total_board, items_total_area, rewards_list, alpha)
+        else:
+            return 0, []
 
     def getBinItem(self, board, items_list_board):
         # get the state: bin representation + items representation
