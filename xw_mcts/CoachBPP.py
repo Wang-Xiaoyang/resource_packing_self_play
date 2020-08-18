@@ -206,15 +206,18 @@ class CoachBPP():
         # if mean(scores)_n > mean(scores)_p, return 1, accept new model
         p_scores = []
         n_scores = []
-        for i in range(self.args.arenaCompare):
-            # pmcts
+
+        for _ in tqdm(range(self.args.arenaCompare), desc="Arena playing"):
+            # generate game
             np.random.seed()
             generator_seed = np.random.randint(int(1e5))
             items_list = self.gen.items_generator(generator_seed)
-            self.items_list = np.copy(items_list)
-
+            self.items_list_p = np.copy(items_list)
+            self.items_list_n = np.copy(items_list)
+            
+            # pmcts
             board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(self.items_list)
+            items_list_board = self.game.getInitItems(self.items_list_p)
             bin_items_state = self.game.getBinItem(board, items_list_board)
 
             game_ended = 0
@@ -230,15 +233,9 @@ class CoachBPP():
                 game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
             p_scores.append(score)
 
-        for j in range(self.args.arenaCompare):
-            # nmcts
-            np.random.seed()
-            generator_seed = np.random.randint(int(1e5))
-            items_list = self.gen.items_generator(generator_seed)
-            self.items_list = np.copy(items_list)
-
+            #nmcts
             board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(self.items_list)
+            items_list_board = self.game.getInitItems(self.items_list_n)
             bin_items_state = self.game.getBinItem(board, items_list_board)
 
             game_ended = 0
