@@ -13,6 +13,7 @@ from Arena import Arena
 from MCTS_bpp import MCTS
 
 import wandb
+import time
 
 log = logging.getLogger(__name__)
 
@@ -80,10 +81,10 @@ class CoachBPP():
             action = np.random.choice(len(pi), p=pi)
             board, items_list_board = self.game.getNextState(board, action, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
-
+            
             r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
 
-            if r != 0:
+            if r != 0:  
                 # self.rewards_list.append(score)
                 # # if score  = [], does len(self.rewards_list) change?
                 # if len(self.rewards_list) > self.args.numScoresForRank:
