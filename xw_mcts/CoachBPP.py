@@ -42,7 +42,7 @@ class CoachBPP():
         random.seed(args.seed)
         self.seeds = random.sample(range(0, 10000), 500)
 
-    def executeEpisode(self):
+    def executeEpisode(self, greedy=False):
         """
         This function executes one episode of self-play, starting with player 1.
         As the game is played, each turn is added as a training example to
@@ -67,8 +67,10 @@ class CoachBPP():
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
-
-            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list)
+            if greedy:
+                pi = self.mcts.getActionProb(items_state, self.items_total_area, self.rewards_list, greedy_a=0)
+            else:
+                pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list)
             sym = self.game.getSymmetries(board, pi)
             for b, p in sym:
                 state_sym = self.game.getBinItem(b, items_list_board)
@@ -118,7 +120,7 @@ class CoachBPP():
                 # items_list = self.gen.items_generator(self.args.seed)
                 # self.items_list = np.copy(items_list)
                 # [board, action_prob, win/lose score] in iterationTrainExamples
-                iterationTrainExamples += self.executeEpisode()
+                iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
                 ep_scores.append(self.ep_score)
             
             self.rewards_list.append(np.mean(ep_scores))

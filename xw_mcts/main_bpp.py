@@ -18,13 +18,13 @@ wandb.init(entity="xiaoyang",
 wandb.config.binW, wandb.config.binH = 10, 10
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
-wandb.config.numIters = 500 #50
+wandb.config.numIters = 200 #50
 wandb.config.numEps = 50
-wandb.config.epStepThreshold = 100  # choose actions greedily after # steps in one episode; set to 100: always stochastic; exploration vs exploitation
+wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
 wandb.config.numMCTSSims = 300 #100
-wandb.config.arenaCompare = 5 #20; for each agent
+wandb.config.arenaCompare = 20 #20; for each agent
 wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
 wandb.config.seed = 100
@@ -48,7 +48,7 @@ coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 args = dotdict({
     'numIters': config.numIters,
     'numEps': config.numEps,              # Number of complete self-play games to simulate during a new iteration.
-    'epStepThreshold': config.epStepThreshold,        #
+#    'epStepThreshold': config.epStepThreshold,        #
     'updateThreshold': config.updateThreshold,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': config.maxlenOfQueue,    # Number of game examples to train the neural networks.
     'numMCTSSims': config.numMCTSSims,          # Number of games moves for MCTS to simulate.
@@ -59,6 +59,7 @@ args = dotdict({
     'numScoresForRank': config.numScoresForRank,
     'numItems': config.numItems,
     'numBins': config.numBins,
+    'iterStepThreshold': config.iterStepThreshold,
 
     'lr': config.lr,
     'dropout': config.dropout,
@@ -71,7 +72,7 @@ args = dotdict({
 
     'checkpoint': './temp/',
     'load_model': False,
-    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
+    'load_folder_file': ('/xw_mcts_wild_multi_game_10/temp','best.pth.tar'),
     'numItersForTrainExamplesHistory': config.numItersForTrainExamplesHistory,
 })
 
@@ -87,7 +88,7 @@ def main():
     nnet = nn(g, args)
 
     if args.load_model:
-        log.info('Loading checkpoint "%s/%s"...', args.load_folder_file)
+        log.info('Loading checkpoint "%s/%s"...', args.load_folder_file[0], args.load_folder_file[1])
         nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
     else:
         log.warning('Not loading a checkpoint!')
