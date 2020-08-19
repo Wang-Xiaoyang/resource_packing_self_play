@@ -68,7 +68,7 @@ class CoachBPP():
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
             if greedy:
-                pi = self.mcts.getActionProb(items_state, self.items_total_area, self.rewards_list, greedy_a=0)
+                pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
             else:
                 pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list)
             sym = self.game.getSymmetries(board, pi)
@@ -106,6 +106,8 @@ class CoachBPP():
             # examples of the iteration
             ep_scores = []
 
+            # store seeds in this iter
+            seeds_iter = []
             # if not self.skipFirstSelfPlay or i > 1:
             iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
             for _ in tqdm(range(self.args.numEps), desc="Self Play"):
@@ -115,6 +117,7 @@ class CoachBPP():
                 np.random.seed()
                 generator_seed = np.random.randint(int(1e5))
                 items_list = self.gen.items_generator(generator_seed)
+                seeds_iter.append(generator_seed)
                 self.items_list = np.copy(items_list)
                 # # 2. same game (items shapes fixed)
                 # items_list = self.gen.items_generator(self.args.seed)
@@ -122,7 +125,7 @@ class CoachBPP():
                 # [board, action_prob, win/lose score] in iterationTrainExamples
                 iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
                 ep_scores.append(self.ep_score)
-            
+
             self.rewards_list.append(np.mean(ep_scores))
             # self.rewards_list.append(self.ep_score)
             # if score  = [], does len(self.rewards_list) change?
@@ -164,7 +167,7 @@ class CoachBPP():
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             log.info('PITTING AGAINST PREVIOUS VERSION')
-            n_win = self.arena_playing(pmcts, nmcts)
+            n_win = self.arena_playing(pmcts, nmcts, seeds_iter)
 
             log.info('WIN: %d' % (n_win))
             if n_win == 0:
@@ -204,22 +207,26 @@ class CoachBPP():
             # examples based on the model were already collected (loaded)
             self.skipFirstSelfPlay = True
 
-    def arena_playing(self, pmcts, nmcts):
+    def arena_playing(self, pmcts, nmcts, seeds_iter):
         # if mean(scores)_n > mean(scores)_p, return 1, accept new model
         p_scores = []
         n_scores = []
+        # seeds for arena playing
+        random.seed()
+        arena_seeds = random.sample(seeds_iter, self.args.arenaCompare)
 
-        for _ in tqdm(range(self.args.arenaCompare), desc="Arena playing"):
+        for t in tqdm(range(self.args.arenaCompare), desc="Arena playing"):
             # generate game
-            np.random.seed()
-            generator_seed = np.random.randint(int(1e5))
+            # np.random.seed()
+            # generator_seed = np.random.randint(int(1e5))
+            generator_seed = arena_seeds[t]        
             items_list = self.gen.items_generator(generator_seed)
-            self.items_list_p = np.copy(items_list)
-            self.items_list_n = np.copy(items_list)
+            items_list_p = np.copy(items_list)
+            items_list_n = np.copy(items_list)
             
             # pmcts
             board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(self.items_list_p)
+            items_list_board = self.game.getInitItems(items_list_p)
             bin_items_state = self.game.getBinItem(board, items_list_board)
 
             game_ended = 0
@@ -237,7 +244,7 @@ class CoachBPP():
 
             #nmcts
             board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(self.items_list_n)
+            items_list_board = self.game.getInitItems(items_list_n)
             bin_items_state = self.game.getBinItem(board, items_list_board)
 
             game_ended = 0
