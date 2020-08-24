@@ -11,6 +11,7 @@ from utils import *
 
 import torch
 import wandb
+import pickle
 
 wandb.init(entity="xiaoyang",
             project="ranked-reward-bin-packing")
@@ -29,7 +30,7 @@ wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
 wandb.config.seed = 100
 wandb.config.numItersForTrainExamplesHistory = 200 # keep training samples for # iters
-wandb.config.numScoresForRank = 250 # total number of saved reward (for ranked reward)
+wandb.config.numScoresForRank = 100 # total number of saved reward (for ranked reward)
 wandb.config.lr = 0.001
 wandb.config.dropout = 0.1
 wandb.config.epochs = 10
@@ -37,7 +38,10 @@ wandb.config.batch_size = 64
 wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
-
+wandb.config.load_model = False
+wandb.config.load_folder_file = ('/xw_mcts_wild_multi_game_10/temp','best.pth.tar')
+wandb.config.load_rewards_list = False
+wandb.config.load_rewards_list_file = '/xw_mcts_wild_multi_game_10/temp/rewards_list_10_items.pkl'
 config = wandb.config
 
 log = logging.getLogger(__name__)
@@ -71,8 +75,10 @@ args = dotdict({
     'num_bins': config.numBins,
 
     'checkpoint': './temp/',
-    'load_model': False,
-    'load_folder_file': ('/xw_mcts_wild_multi_game_10/temp','best.pth.tar'),
+    'load_model': config.load_model,
+    'load_folder_file': config.load_folder_file,
+    'load_rewards_list': config.load_rewards_list,
+    'load_rewards_list_file': config.load_rewards_list_file,
     'numItersForTrainExamplesHistory': config.numItersForTrainExamplesHistory,
 })
 
@@ -94,7 +100,14 @@ def main():
         log.warning('Not loading a checkpoint!')
 
     log.info('Loading the Coach...')
-    c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args)
+    if args.load_rewards_list:
+        log.info('Loading reward list file "%s"...', args.load_rewards_list_file)
+        with open(args.load_rewards_list_file, 'rb') as f:
+            saved_rewards_list = pickle.load(f)
+        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args, saved_rewards_list=saved_rewards_list)
+    else:
+        log.info('Not laoding reward list file')
+        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args)        
 
     if args.load_model:
         log.info("Loading 'trainExamples' from file...")

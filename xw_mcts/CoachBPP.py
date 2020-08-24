@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from collections import deque
+import pickle
 from pickle import Pickler, Unpickler
 import random
 from random import shuffle
@@ -13,7 +14,7 @@ from Arena import Arena
 from MCTS_bpp import MCTS
 
 import wandb
-import time
+# import time
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class CoachBPP():
     in Game and NeuralNet. args are specified in main.py.
     """
 
-    def __init__(self, game, nnet, items_list, total_area, gen, args):
+    def __init__(self, game, nnet, items_list, total_area, gen, args, saved_rewards_list=[]):
         self.game = game
         self.nnet = nnet
         self.args = args
@@ -33,7 +34,7 @@ class CoachBPP():
         self.items_total_area = total_area # given for simplicity; to be changed later TODO
         # Q: in BPP, we could generate different item sets. Do we treat each item set as a different problem? or do we change item sets during 
         # training?
-        self.rewards_list = []
+        self.rewards_list = saved_rewards_list.copy()
         self.ep_score = 0
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
@@ -109,40 +110,40 @@ class CoachBPP():
 
             # store seeds in this iter
             seeds_iter = []
-            # if not self.skipFirstSelfPlay or i > 1:
-            iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
-            for _ in tqdm(range(self.args.numEps), desc="Self Play"):
-                self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
-                # 1. re-generate items: different game
-                # generator_seed = np.random.choice(self.seeds)
-                np.random.seed()
-                generator_seed = np.random.randint(int(1e5))
-                items_list = self.gen.items_generator(generator_seed)
-                seeds_iter.append(generator_seed)
-                self.items_list = np.copy(items_list)
-                # # 2. same game (items shapes fixed)
-                # items_list = self.gen.items_generator(self.args.seed)
-                # self.items_list = np.copy(items_list)
-                # [board, action_prob, win/lose score] in iterationTrainExamples
-                iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
-                ep_scores.append(self.ep_score)
+            if not self.skipFirstSelfPlay or i > 1:
+                iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
+                for _ in tqdm(range(self.args.numEps), desc="Self Play"):
+                    self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
+                    # 1. re-generate items: different game
+                    # generator_seed = np.random.choice(self.seeds)
+                    np.random.seed()
+                    generator_seed = np.random.randint(int(1e5))
+                    items_list = self.gen.items_generator(generator_seed)
+                    seeds_iter.append(generator_seed)
+                    self.items_list = np.copy(items_list)
+                    # # 2. same game (items shapes fixed)
+                    # items_list = self.gen.items_generator(self.args.seed)
+                    # self.items_list = np.copy(items_list)
+                    # [board, action_prob, win/lose score] in iterationTrainExamples
+                    iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
+                    ep_scores.append(self.ep_score)
 
-            self.rewards_list.append(np.mean(ep_scores))
-            # self.rewards_list.append(self.ep_score)
-            # if score  = [], does len(self.rewards_list) change?
-            if len(self.rewards_list) > self.args.numScoresForRank:
-                self.rewards_list.pop(0)
-            # print('reward buffer for ranked reward: ', self.rewards_list)                
-            wandb.log({"mean reward": np.mean(ep_scores)}, step=i)
-            percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
-            wandb.log({"optimality percentage": percentage_optim,
-                        "min reward": np.min(ep_scores),
-                        "max reward": np.max(ep_scores)}, step=i)
-            # print('-----------mean reward of Iter ', i, 'is-----------', np.mean(ep_scores))
-            
-            # save the iteration examples to the history 
-            # this is the examples used for training
-            self.trainExamplesHistory.append(iterationTrainExamples)
+                self.rewards_list.append(np.mean(ep_scores))
+                # self.rewards_list.append(self.ep_score)
+                # if score  = [], does len(self.rewards_list) change?
+                if len(self.rewards_list) > self.args.numScoresForRank:
+                    self.rewards_list.pop(0)
+                # print('reward buffer for ranked reward: ', self.rewards_list)                
+                wandb.log({"mean reward": np.mean(ep_scores)}, step=i)
+                percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
+                wandb.log({"optimality percentage": percentage_optim,
+                            "min reward": np.min(ep_scores),
+                            "max reward": np.max(ep_scores)}, step=i)
+                # print('-----------mean reward of Iter ', i, 'is-----------', np.mean(ep_scores))
+                
+                # save the iteration examples to the history 
+                # this is the examples used for training
+                self.trainExamplesHistory.append(iterationTrainExamples)
 
             if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
                 log.warning(
@@ -167,8 +168,12 @@ class CoachBPP():
             self.nnet.train(trainExamples)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
-            log.info('PITTING AGAINST PREVIOUS VERSION')
-            n_win = self.arena_playing(pmcts, nmcts, seeds_iter)
+            if not self.skipFirstSelfPlay or i > 1:
+                log.info('PITTING AGAINST PREVIOUS VERSION')
+                n_win = self.arena_playing(pmcts, nmcts, seeds_iter)
+            else:
+                # if trained on saved samples in the first iter, accept new model by default
+                n_win = 1
 
             log.info('WIN: %d' % (n_win))
             if n_win == 0:
@@ -178,7 +183,16 @@ class CoachBPP():
                 log.info('ACCEPTING NEW MODEL')
                 # self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+            
+            # save self.rewards_list in each iter
+            self.save_rewards_list()
         
+    def save_rewards_list(self):
+        file_n = 'rewards_list_' + str(self.args.numItems) + '_items.pkl'
+        filepath = os.path.join(self.args.checkpoint, file_n)
+        with open(filepath, 'wb') as f:
+            pickle.dump(self.rewards_list, f)
+    
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
 
