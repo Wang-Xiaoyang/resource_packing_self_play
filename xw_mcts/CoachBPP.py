@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import os
 import sys
 from collections import deque
@@ -105,9 +105,7 @@ class CoachBPP():
         for i in range(1, self.args.numIters + 1):
             # bookkeeping
             log.info(f'Starting Iter #{i} ...')
-            # examples of the iteration
             ep_scores = []
-
             # store seeds in this iter
             seeds_iter = []
             if not self.skipFirstSelfPlay or i > 1:
@@ -127,14 +125,13 @@ class CoachBPP():
                     # [board, action_prob, win/lose score] in iterationTrainExamples
                     iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
                     ep_scores.append(self.ep_score)
+                    self.rewards_list.append(self.ep_score)
 
-                self.rewards_list.append(np.mean(ep_scores))
-                # self.rewards_list.append(self.ep_score)
-                # if score  = [], does len(self.rewards_list) change?
-                if len(self.rewards_list) > self.args.numScoresForRank:
-                    self.rewards_list.pop(0)
+                while len(self.rewards_list) > self.args.numScoresForRank:
+                    idx = np.argmin(self.rewards_list)
+                    self.rewards_list.pop(idx)
                 # print('reward buffer for ranked reward: ', self.rewards_list)                
-                wandb.log({"mean reward": np.mean(ep_scores)}, step=i)
+                wandb.log({"iter mean reward": np.mean(ep_scores)}, step=i)
                 percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
                 wandb.log({"optimality percentage": percentage_optim,
                             "min reward": np.min(ep_scores),
@@ -149,10 +146,11 @@ class CoachBPP():
                 log.warning(
                     f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}")
                 self.trainExamplesHistory.pop(0)
+            
             # backup history to a file
             # NB! the examples were collected using the model from the previous iteration, so (i-1)
-            if i % 100 == 0:  
-                self.saveTrainExamples(i - 1)
+            # if i % 100 == 0:  
+            #     self.saveTrainExamples(i - 1)
 
             # shuffle examples before training
             trainExamples = []
