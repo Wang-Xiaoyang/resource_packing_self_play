@@ -38,9 +38,9 @@ wandb.config.batch_size = 64
 wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
-wandb.config.load_model = True
+wandb.config.load_model = False
 wandb.config.load_folder_file = ('/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp','best.pth.tar')
-wandb.config.load_rewards_list = True
+wandb.config.load_rewards_list = False
 wandb.config.load_rewards_list_file = '/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp/rewards_list_10_items.pkl'
 config = wandb.config
 

@@ -35,6 +35,9 @@ class CoachBPP():
         # Q: in BPP, we could generate different item sets. Do we treat each item set as a different problem? or do we change item sets during 
         # training?
         self.rewards_list = saved_rewards_list.copy()
+        # 0918: initialize self.rewards_list
+        for i in range(25):
+            self.rewards_list.append(1.0)
         self.ep_score = 0
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
@@ -128,8 +131,11 @@ class CoachBPP():
                     self.rewards_list.append(self.ep_score)
 
                 while len(self.rewards_list) > self.args.numScoresForRank:
+                    # Try 1: remove the smallest score
                     idx = np.argmin(self.rewards_list)
                     self.rewards_list.pop(idx)
+                    # Try 2: remove the oldest
+                    # self.rewards_list.pop(0)
                 # print('reward buffer for ranked reward: ', self.rewards_list)                
                 wandb.log({"iter mean reward": np.mean(ep_scores)}, step=i)
                 percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
