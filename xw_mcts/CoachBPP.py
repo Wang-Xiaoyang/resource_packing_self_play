@@ -63,11 +63,24 @@ class CoachBPP():
         self.curPlayer = 1
         episodeStep = 0
 
+        placement_info = {'placement': [],
+                    'score': 0,}
+
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
             pi = self.mcts.get_best_action(bin_items_state, self.items_total_area, self.rewards_list)
             action = np.random.choice(len(pi), p=pi)
+            # save action --> placement
+            cur_item, placement = int(action/(self.game.bin_height*self.game.bin_width)), action%(self.game.bin_height*self.game.bin_width)        
+            item = items_list_board[cur_item]
+            assert sum(sum(item)) > 0 # must choose a valid item
+            # item is valid
+            w = sum(item[0,:])
+            h = sum(item[:,0])
+            (i, j) = (int(placement/self.game.bin_width), placement%self.game.bin_width)
+            placement_info['placement'].append([i, j, w, h]) # y, x, w, h
+
             board, items_list_board = self.game.getNextState(board, action, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
             
@@ -75,7 +88,8 @@ class CoachBPP():
 
             if r != 0:  
                 self.ep_score = score
-                return self.ep_score
+                placement_info['score'] = score
+                return placement_info
 
     def learn(self):
         """
@@ -91,13 +105,19 @@ class CoachBPP():
             # generate a new game
             np.random.seed()
             generator_seed = np.random.randint(int(1e5))
-
+            t = 0
+            seeds = [96890, 63470]
+            eval_results = []
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
-                items_list = self.gen.items_generator(generator_seed)
+                items_list = self.gen.items_generator(seeds[t])
                 self.items_list = np.copy(items_list)
-                self.executeEpisode()
+                eval_results.append(self.executeEpisode())
                 self.rewards_list.append(self.ep_score)
                 wandb.log({"all scores": self.ep_score})
+                t += 1
+
+            with open('eval_results.pkl', 'wb') as f:
+                pickle.dump(eval_results, f)
 
             # self.rewards_list.append(self.ep_score)
             # if score  = [], does len(self.rewards_list) change?
@@ -113,6 +133,7 @@ class CoachBPP():
             
             # save self.rewards_list in each iter
             self.save_rewards_list()
+
         
     def save_rewards_list(self):
         file_n = 'rewards_list_' + str(self.args.numItems) + '_items.pkl'
