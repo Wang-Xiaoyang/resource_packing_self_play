@@ -28,7 +28,9 @@ class CoachBPP():
     def __init__(self, game, items_list, total_area, gen, args, saved_rewards_list=[]):
         self.game = game
         self.args = args
-        self.items_list = items_list # the items to be packed (w, h, a, b) from the generator
+        # self.items_list = items_list # the items to be packed (w, h, a, b) from the generator
+        # self.items_list = [[1, 10, 0, 0], [4, 5, 0, 0], [4, 5, 0, 0], [4, 3, 0, 0], [1, 3, 0, 0], [3, 1, 0, 0], [2, 1, 0, 0], [5, 3, 0, 0], [3, 3, 0, 0], [2, 3, 0, 0]]
+        self.items_list = [[4, 2, 0, 0], [3, 3, 0, 0], [2, 5, 0, 0], [1, 8, 0, 0], [1, 8, 0, 0], [1, 8, 0, 0], [3, 1, 0, 0], [4, 7, 0, 0], [3, 5, 0, 0], [1, 8, 0, 0]]
         self.items_total_area = total_area # given for simplicity; to be changed later TODO
         # Q: in BPP, we could generate different item sets. Do we treat each item set as a different problem? or do we change item sets during 
         # training?
@@ -66,22 +68,49 @@ class CoachBPP():
         placement_info = {'placement': [],
                     'score': 0,}
 
+        # first item
+        episodeStep += 1
+        bin_items_state = self.game.getBinItem(board, items_list_board)
+        size_list = []
+        for i in range(len(self.items_list)):
+            size_list.append(self.items_list[i][0]*self.items_list[i][1])
+        self.items_total_area = sum(size_list)
+        cur_item = np.argmax(size_list)
+        item = items_list_board[cur_item]
+        w = sum(item[0,:])
+        h = sum(item[:,0])
+        size_list[cur_item] = 0
+        cur_action = cur_item*(self.game.bin_height*self.game.bin_width)
+        _, placement_ = int(cur_action/(self.game.bin_height*self.game.bin_width)), cur_action%(self.game.bin_height*self.game.bin_width)
+        (i, j) = (int(placement_/self.game.bin_width), placement_%self.game.bin_width)
+        placement_info['placement'].append([i, j, w, h]) # y, x, w, h
+
+        board, items_list_board = self.game.getNextState(board, cur_action, items_list_board)
+        next_bin_items_state = self.game.getBinItem(board, items_list_board)
+
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
-            pi = self.mcts.get_best_action(bin_items_state, self.items_total_area, self.rewards_list)
-            action = np.random.choice(len(pi), p=pi)
-            # save action --> placement
-            cur_item, placement = int(action/(self.game.bin_height*self.game.bin_width)), action%(self.game.bin_height*self.game.bin_width)        
+            # find item
+            cur_item = np.argmax(size_list)
+            size_list[cur_item] = 0
+            # find placement
+            valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
+            as_ = []
+            for ii in valid_actions:
+                board_, _ = self.game.getNextState(board, ii, items_list_board)
+                as_.append(self.game.get_minimal_bin(board_))
+            action_chosen = valid_actions[np.argmin(as_)]
+
             item = items_list_board[cur_item]
-            assert sum(sum(item)) > 0 # must choose a valid item
-            # item is valid
             w = sum(item[0,:])
             h = sum(item[:,0])
-            (i, j) = (int(placement/self.game.bin_width), placement%self.game.bin_width)
+
+            _, placement_ = int(action_chosen/(self.game.bin_height*self.game.bin_width)), action_chosen%(self.game.bin_height*self.game.bin_width)
+            (i, j) = (int(placement_/self.game.bin_width), placement_%self.game.bin_width)
             placement_info['placement'].append([i, j, w, h]) # y, x, w, h
 
-            board, items_list_board = self.game.getNextState(board, action, items_list_board)
+            board, items_list_board = self.game.getNextState(board, action_chosen, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
             
             r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
@@ -106,17 +135,20 @@ class CoachBPP():
             np.random.seed()
             generator_seed = np.random.randint(int(1e5))
             t = 0
-            seeds = [96890, 63470]
+            seeds = [96890, 63470] # - two seeds used for self-play vs MCTS results visualization 
             eval_results = []
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
-                items_list = self.gen.items_generator(seeds[t])
-                self.items_list = np.copy(items_list)
+                # items_list = self.gen.items_generator(seeds[t])
+                # generator_seed = np.random.randint(int(1e5))
+                # items_list = self.gen.items_generator(generator_seed)
+                # self.items_list = np.copy(items_list)
+                # define self.items_list
                 eval_results.append(self.executeEpisode())
                 self.rewards_list.append(self.ep_score)
                 wandb.log({"all scores": self.ep_score})
                 t += 1
 
-            with open('eval_results.pkl', 'wb') as f:
+            with open('eval_results_lego.pkl', 'wb') as f:
                 pickle.dump(eval_results, f)
 
             # self.rewards_list.append(self.ep_score)
