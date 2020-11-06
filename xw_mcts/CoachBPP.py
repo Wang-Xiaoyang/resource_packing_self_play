@@ -35,9 +35,9 @@ class CoachBPP():
         # Q: in BPP, we could generate different item sets. Do we treat each item set as a different problem? or do we change item sets during 
         # training?
         self.rewards_list = saved_rewards_list.copy()
-        # 0918: initialize self.rewards_list
-        for i in range(25):
-            self.rewards_list.append(1.0)
+        # # 0918: initialize self.rewards_list
+        # for i in range(25):
+        #     self.rewards_list.append(1.0)
         self.ep_score = 0
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
@@ -116,16 +116,12 @@ class CoachBPP():
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     # 1. re-generate items: different game
-                    # generator_seed = np.random.choice(self.seeds)
                     np.random.seed()
                     generator_seed = np.random.randint(int(1e5))
                     items_list = self.gen.items_generator(generator_seed)
                     seeds_iter.append(generator_seed)
                     self.items_list = np.copy(items_list)
-                    # # 2. same game (items shapes fixed)
-                    # items_list = self.gen.items_generator(self.args.seed)
-                    # self.items_list = np.copy(items_list)
-                    # [board, action_prob, win/lose score] in iterationTrainExamples
+
                     iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
                     ep_scores.append(self.ep_score)
                     self.rewards_list.append(self.ep_score)
@@ -157,6 +153,7 @@ class CoachBPP():
             # NB! the examples were collected using the model from the previous iteration, so (i-1)
             # if i % 100 == 0:  
             #     self.saveTrainExamples(i - 1)
+            self.saveTrainExamples(i-1)
 
             # shuffle examples before training
             trainExamples = []
@@ -166,27 +163,27 @@ class CoachBPP():
 
             # training new network, keeping a copy of the old one
             self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            pmcts = MCTS(self.game, self.pnet, self.args)
+            # self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+            # pmcts = MCTS(self.game, self.pnet, self.args)
 
             self.nnet.train(trainExamples)
-            nmcts = MCTS(self.game, self.nnet, self.args)
+            # nmcts = MCTS(self.game, self.nnet, self.args)
 
-            if not self.skipFirstSelfPlay or i > 1:
-                log.info('PITTING AGAINST PREVIOUS VERSION')
-                n_win = self.arena_playing(pmcts, nmcts, seeds_iter)
-            else:
-                # if trained on saved samples in the first iter, accept new model by default
-                n_win = 1
+            # if not self.skipFirstSelfPlay or i > 1:
+            #     log.info('PITTING AGAINST PREVIOUS VERSION')
+            #     n_win = self.arena_playing(pmcts, nmcts, seeds_iter)
+            # else:
+            #     # if trained on saved samples in the first iter, accept new model by default
+            #     n_win = 1
 
-            log.info('WIN: %d' % (n_win))
-            if n_win == 0:
-                log.info('REJECTING NEW MODEL')
-                self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            else:
-                log.info('ACCEPTING NEW MODEL')
-                # self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
-                self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+            # log.info('WIN: %d' % (n_win))
+            # if n_win == 0:
+            #     log.info('REJECTING NEW MODEL')
+            #     self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+            # else:
+            #     log.info('ACCEPTING NEW MODEL')
+            #     # self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
+            #     self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
             
             # save self.rewards_list in each iter
             self.save_rewards_list()
@@ -198,7 +195,7 @@ class CoachBPP():
             pickle.dump(self.rewards_list, f)
     
     def getCheckpointFile(self, iteration):
-        return 'checkpoint_' + str(iteration) + '.pth.tar'
+        return 'checkpoint_' + '.pth.tar'
 
     def saveTrainExamples(self, iteration):
         folder = self.args.checkpoint

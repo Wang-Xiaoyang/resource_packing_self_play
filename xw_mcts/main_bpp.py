@@ -16,6 +16,7 @@ import pickle
 wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
+# W: time; H: resource
 wandb.config.binW, wandb.config.binH = 10, 10
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
@@ -24,13 +25,13 @@ wandb.config.numEps = 20
 wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
-wandb.config.numMCTSSims = 300 #100
+wandb.config.numMCTSSims = 50 #300
 wandb.config.arenaCompare = 10 #20; for each agent
 wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
 wandb.config.seed = 100
 wandb.config.numItersForTrainExamplesHistory = 200 # keep training samples for # iters
-wandb.config.numScoresForRank = 100 # total number of saved reward (for ranked reward)
+wandb.config.numScoresForRank = 50 # total number of saved reward (for ranked reward); 100
 wandb.config.lr = 0.001
 wandb.config.dropout = 0.1
 wandb.config.epochs = 10

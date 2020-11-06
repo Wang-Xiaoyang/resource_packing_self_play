@@ -18,6 +18,8 @@ class BinPackingGame(Game):
         self.num_items = num_items
         self.n = n # number of bins (consider later - xw)
         self.cur_item = 0 # counter(idx) for item(s) being considered
+        self.sum_h = 0
+        self.max_h = 0
 
     def getInitBoard(self):
         # return initial board (numpy board)
@@ -37,11 +39,17 @@ class BinPackingGame(Game):
     def getInitItems(self, items_list):
         # items_list from item generator
         items_list_board = []
+        sum_h = 0
+        max_h = 0
         for i in range(self.num_items):
             w, h, _, _ = items_list[i]
             item_board = self.getInitBoard()
             item_board[0:h, 0:w] = 1
             items_list_board += [item_board]
+            sum_h += h
+            max_h = max(max_h, h)
+        self.sum_h = sum_h
+        self.max_h = max_h
         return items_list_board
     
     def getItemsUpdated(self, items_list_board, cur_item):
@@ -199,20 +207,29 @@ class BinPackingGame(Game):
         w = j + 1
         a = max([h, w])
         return a
+
+    def get_minimal_bin_height(self, board):
+        for i in reversed(range(self.bin_height)):
+            if sum(board[i,:]) > 0:
+                break
+        h = i + 1
+        return h
     
     def getRankedReward(self, total_board, items_total_area, rewards_list, alpha):
         # alpha: the ranked reward parameter
         rewards_list = rewards_list.copy()
 
+        # get actual reward
         if sum(sum(total_board[0,:])) != items_total_area:
             # some items are discarded instead of being placed in the bin
-            # r = items_total_area / (self.bin_width*self.bin_height*2) # here 2 is a penalty parameter - indicating not all items are placed
             r = 0 # in consistent with ranked reward paper: if not all items places, r = 0
         else:
-            a = self.get_minimal_bin(total_board[0,:])
-            r = items_total_area / (a*a)
-        # r = sum(sum(total_board[0,:])) / items_total_area
+            # 1106: reward #1: [minimal resource usage in theory] / [actual resource usage]
+            r = max(np.ceil(items_total_area / self.bin_width), self.max_h) / self.get_minimal_bin_height(total_board[0,:])
+            # 1106: reward #2: [sum of resource requirements] / [actual resource usage] - does it make sense???
+            # r = self.sum_h / self.get_minimal_bin_height(total_board[0,:])
 
+        # ranked reward
         if len(rewards_list) == 0:
             return 1, r
         sorted_reward = np.sort(rewards_list)
