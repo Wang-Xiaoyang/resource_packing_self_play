@@ -206,7 +206,8 @@ class BinPackingGame(Game):
 
         if sum(sum(total_board[0,:])) != items_total_area:
             # some items are discarded instead of being placed in the bin
-            r = items_total_area / (self.bin_width*self.bin_height*2) # here 2 is a penalty parameter - indicating not all items are placed
+            # r = items_total_area / (self.bin_width*self.bin_height*2) # here 2 is a penalty parameter - indicating not all items are placed
+            r = 0 # in consistent with ranked reward paper: if not all items places, r = 0
         else:
             a = self.get_minimal_bin(total_board[0,:])
             r = items_total_area / (a*a)

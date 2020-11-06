@@ -94,7 +94,7 @@ class Bin():
         if i == 0:
             adjacent_direction += 1
         else:
-            if sum(self[i-1, j:j+w]) != 0:
+            if sum(self[i-1, j:j+w]) > 0:
                 adjacent_direction += 1
         # # down
         # if i+h == self.bin_height:
@@ -106,7 +106,7 @@ class Bin():
         if j == 0:
             adjacent_direction += 1
         else:
-            if sum(self[i:i+h, j-1]) != 0:
+            if sum(self[i:i+h, j-1]) > 0:
                 adjacent_direction += 1
         # # right
         # if j+w == self.bin_width:
