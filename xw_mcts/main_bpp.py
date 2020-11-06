@@ -14,7 +14,7 @@ import wandb
 import pickle
 
 wandb.init(entity="xiaoyang",
-            project="ranked-reward-bin-packing")
+            project="resource-packing-self-play")
 # wandb config parameters
 wandb.config.binW, wandb.config.binH = 10, 10
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
