@@ -113,12 +113,17 @@ class CoachBPP():
             ep_scores = []
             # store seeds in this iter
             seeds_iter = []
+            # re-init a generator: for different height
+            np.random.seed()
+            self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
+            self.items_total_area = self.gen.bin_height * self.gen.bin_width
+
             if not self.skipFirstSelfPlay or i > 1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     # 1. re-generate items: different game
-                    np.random.seed()
+                    # np.random.seed()
                     generator_seed = np.random.randint(int(1e5))
                     items_list = self.gen.items_generator(generator_seed)
                     seeds_iter.append(generator_seed)
