@@ -76,10 +76,12 @@ class CoachBPP():
                 pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
             else:
                 pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list)
-            sym = self.game.getSymmetries(board, pi)
-            for b, p in sym:
-                state_sym = self.game.getBinItem(b, items_list_board)
-                trainExamples.append([state_sym, p, None])
+            
+            trainExamples.append([bin_items_state, pi, None])            
+            # sym = self.game.getSymmetries(board, pi)
+            # for b, p in sym:
+            #     state_sym = self.game.getBinItem(b, items_list_board)
+            #     trainExamples.append([state_sym, p, None])
             
             np.random.seed()
             action = np.random.choice(len(pi), p=pi)

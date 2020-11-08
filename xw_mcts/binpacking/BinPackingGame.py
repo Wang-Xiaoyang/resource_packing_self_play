@@ -32,9 +32,7 @@ class BinPackingGame(Game):
 
     def getActionSize(self):
         # return number of actions
-        # total number of actions in this board
-        # return (self.bin_height*self.bin_width)*self.num_items + self.num_items
-        return self.bin_height*self.bin_width*self.num_items
+        return self.bin_width * self.num_items
 
     def getInitItems(self, items_list):
         # items_list from item generator
@@ -61,49 +59,21 @@ class BinPackingGame(Game):
         # get next board, to see if game ended - xw
         # also the next state to keep game going!
 
-        # if player takes action on board, return next (board,player)
         # action must be a valid move
         items_list_board = np.copy(items_list_board)
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board)
-        # # action: item*(bin_h*bin_w) + [0:num_items] (for pass)
-        # cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)
-        # if cur_item == self.num_items: # pass item or do nothing
-        #     items_list_board = self.getItemsUpdated(items_list_board, placement)
-        #     return b.pieces, items_list_board
-        # item = items_list_board[cur_item] # board format
-        # assert sum(sum(item)) > 0 # must choose a valid item
-        cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)        
+
+        cur_item, placement = int(action/self.bin_width), int(action%(self.bin_width))        
         item = items_list_board[cur_item]
         assert sum(sum(item)) > 0 # must choose a valid item
         # item is valid
         w = sum(item[0,:])
         h = sum(item[:,0])
-        move = (int(placement/self.bin_width), placement%self.bin_width)
+        move = placement
         b.execute_move(move, w, h)
         items_list_board = self.getItemsUpdated(items_list_board, cur_item)
         return (b.pieces, items_list_board)
-
-    # def getValidMoves(self, board):
-    #     # return a fixed size binary vector
-    #     # size is the same with getActionSize; the value is 1 for valid moves in the 'board'
-    #     valids = [0]*self.getActionSize()
-    #     b = Bin(self.bin_width, self.bin_height)
-    #     b.pieces = np.copy(board[0])
-    #     pass_valids = [0] * self.num_items
-    #     legal_moves = []
-    #     for item in range(self.num_items):
-    #         if sum(sum(board[item+1])) == 0:
-    #             continue
-    #         legal_moves += b.get_moves_for_square(board[1:], item)
-    #         pass_valids[item] = 1
-    #     if len(legal_moves)==0:
-    #         valids[-self.num_items:] = pass_valids
-    #         return np.array(valids)
-    #     for item, x, y in legal_moves:
-    #         valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
-    #     valids[-self.num_items:] = pass_valids
-    #     return np.array(valids)
 
     def getValidMoves(self, board):
         # return a fixed size binary vector
@@ -117,8 +87,8 @@ class BinPackingGame(Game):
                 continue
             legal_moves += b.get_moves_for_square(board[1:], item)
         assert len(legal_moves) > 0
-        for item, x, y in legal_moves:
-            valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
+        for item, x in legal_moves:
+            valids[(item*(self.bin_width)+x)] = 1
         return np.array(valids)
 
     def has_valid_moves(self, board):
