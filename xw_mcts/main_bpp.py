@@ -22,11 +22,11 @@ wandb.config.binH_min = 7
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
 wandb.config.numIters = 200 #50
-wandb.config.numEps = 20
+wandb.config.numEps = 100
 wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
-wandb.config.numMCTSSims = 50 #300
+wandb.config.numMCTSSims = 200 #300
 wandb.config.arenaCompare = 10 #20; for each agent
 wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
@@ -40,10 +40,10 @@ wandb.config.batch_size = 64
 wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
-wandb.config.load_model = False
-wandb.config.load_folder_file = ('/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp','best.pth.tar')
-wandb.config.load_rewards_list = False
-wandb.config.load_rewards_list_file = '/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp/rewards_list_10_items.pkl'
+wandb.config.load_model = True
+wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201108_220640-m3c7x7l3/temp','temp.pth.tar')
+wandb.config.load_rewards_list = True
+wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201108_220640-m3c7x7l3/temp/rewards_list_10_items.pkl'
 config = wandb.config
 
 log = logging.getLogger(__name__)
@@ -117,8 +117,11 @@ def main():
         log.info("Loading 'trainExamples' from file...")
         c.loadTrainExamples()
 
-    log.info('Starting the learning process 🎉')
-    c.learn()
+    # log.info('Starting the learning process 🎉')
+    # c.learn()
+
+    log.info('Starting the evaluating process 🎉')
+    c.run_eps_save()
 
     # save trained model:
     wandb.save(args.checkpoint + 'temp.pth.tar')

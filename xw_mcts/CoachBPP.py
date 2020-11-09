@@ -90,7 +90,7 @@ class CoachBPP():
             
             r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
 
-            if r != 0:  
+            if r != 0:
                 # self.rewards_list.append(score)
                 # # if score  = [], does len(self.rewards_list) change?
                 # if len(self.rewards_list) > self.args.numScoresForRank:
@@ -230,62 +230,87 @@ class CoachBPP():
             # examples based on the model were already collected (loaded)
             self.skipFirstSelfPlay = True
 
-    def arena_playing(self, pmcts, nmcts, seeds_iter):
-        # if mean(scores)_n > mean(scores)_p, return 1, accept new model
-        p_scores = []
-        n_scores = []
-        # seeds for arena playing
-        random.seed()
-        arena_seeds = random.sample(seeds_iter, self.args.arenaCompare)
+    def execute_ep_eval(self, items_list):
+        """
+        This function executes one episode of bin packing.
+        Returns:
+        """
+        board = self.game.getInitBoard()
+        items_list_board = self.game.getInitItems(items_list)
+        episodeStep = 0
 
-        for t in tqdm(range(self.args.arenaCompare), desc="Arena playing"):
-            # generate game
-            # np.random.seed()
-            # generator_seed = np.random.randint(int(1e5))
-            generator_seed = arena_seeds[t]        
+        placement_info = {'placement': [],
+                            'score': 0,}
+
+
+        board = self.game.getInitBoard()
+        items_list_board = self.game.getInitItems(items_list)
+        self.curPlayer = 1
+        episodeStep = 0
+
+        while True:
+            episodeStep += 1
+            bin_items_state = self.game.getBinItem(board, items_list_board)
+            pi = self.mcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)           
+            np.random.seed()
+            action = np.random.choice(len(pi), p=pi)
+            # save action --> placement
+            cur_item, placement = int(action/self.game.bin_width), int(action%(self.game.bin_width))
+            item = items_list_board[cur_item]
+            assert sum(sum(item)) > 0 # must choose a valid item
+            # item is valid
+            w = sum(item[0,:])
+            h = sum(item[:,0])
+
+            placement_info['placement'].append([placement, w, h]) # y, x, w, h
+
+            # execute action
+            board, items_list_board = self.game.getNextState(board, action, items_list_board)
+            next_bin_items_state = self.game.getBinItem(board, items_list_board)
+            r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
+
+
+            if r != 0:
+                # self.rewards_list.append(score)
+                # # if score  = [], does len(self.rewards_list) change?
+                # if len(self.rewards_list) > self.args.numScoresForRank:
+                #     self.rewards_list.pop(0)
+                placement_info['score'] = score
+                return placement_info  
+    
+    def run_eps_save(self):
+        """Run eps using loaded model, save results for visualization.
+        Returns:
+            None. Evaluation results (eval_results) is pickled.
+        """
+        log.info(f'Starting Evaluation')
+
+        eval_results = []
+
+        for _ in tqdm(range(self.args.numEps), desc="Self Play"):
+            self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
+            # 1. re-generate items: different game
+            np.random.seed()
+            self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
+            self.items_total_area = self.gen.bin_height * self.gen.bin_width
+
+            generator_seed = np.random.randint(int(1e5))
             items_list = self.gen.items_generator(generator_seed)
-            items_list_p = np.copy(items_list)
-            items_list_n = np.copy(items_list)
+            items_list_eval = np.copy(items_list)
+            # # 2. same game (items shapes fixed)
+            # items_list = self.gen.items_generator(self.args.seed)
+            # self.items_list = np.copy(items_list)
+
+            eval_results.append(self.execute_ep_eval(items_list_eval))
+            # # use the same func with training; only record scores
+            # self.items_list = np.copy(items_list_eval)
+            # placement_info = {'placement': [],
+            #         'score': 0,}
             
-            # pmcts
-            board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(items_list_p)
-            bin_items_state = self.game.getBinItem(board, items_list_board)
+            # self.executeEpisode()
+            # placement_info['score'] = self.ep_score
+            # eval_results.append(placement_info)
 
-            game_ended = 0
 
-            while game_ended == 0:
-                # choose action greedily
-                pi = pmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
-                action = np.random.choice(len(pi), p=pi)
-
-                board, items_list_board = self.game.getNextState(board, action, items_list_board)
-                next_bin_items_state = self.game.getBinItem(board, items_list_board)
-                bin_items_state = next_bin_items_state
-                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
-            p_scores.append(score)
-
-            #nmcts
-            board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(items_list_n)
-            bin_items_state = self.game.getBinItem(board, items_list_board)
-
-            game_ended = 0
-            while game_ended == 0:
-                # choose action greedily
-                pi = nmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
-                action = np.random.choice(len(pi), p=pi)
-
-                board, items_list_board = self.game.getNextState(board, action, items_list_board)
-                next_bin_items_state = self.game.getBinItem(board, items_list_board)
-                bin_items_state = next_bin_items_state
-                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
-            n_scores.append(score)
-
-        # percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
-        # percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
-
-        if np.mean(n_scores) >= np.mean(p_scores):
-            return 1
-        else:
-            return 0
+            with open('eval_results.pkl', 'wb') as f:
+                pickle.dump(eval_results, f)
