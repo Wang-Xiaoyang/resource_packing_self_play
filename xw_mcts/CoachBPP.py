@@ -131,14 +131,7 @@ class CoachBPP():
 
                     iterationTrainExamples += self.executeEpisode(i>self.args.iterStepThreshold)
                     ep_scores.append(self.ep_score)
-                    self.rewards_list.append(self.ep_score)
 
-                while len(self.rewards_list) > self.args.numScoresForRank:
-                    # Try 1: remove the smallest score
-                    idx = np.argmin(self.rewards_list)
-                    self.rewards_list.pop(idx)
-                    # Try 2: remove the oldest
-                    # self.rewards_list.pop(0)
                 # print('reward buffer for ranked reward: ', self.rewards_list)                
                 wandb.log({"iter mean reward": np.mean(ep_scores)}, step=i)
                 percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)

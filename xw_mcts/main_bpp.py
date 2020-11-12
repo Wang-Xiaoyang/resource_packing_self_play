@@ -17,8 +17,8 @@ wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
 # W: time; H: resource
-wandb.config.binW, wandb.config.binH = 15, 10
-wandb.config.binH_min = 7
+wandb.config.binW, wandb.config.binH = 15, 15
+wandb.config.binH_min = 2
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
 wandb.config.numIters = 200 #50
@@ -41,9 +41,9 @@ wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
 wandb.config.load_model = True
-wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201108_220640-m3c7x7l3/temp','temp.pth.tar')
+wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201109_202142-1k7mpwkl/temp','temp.pth.tar')
 wandb.config.load_rewards_list = True
-wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201108_220640-m3c7x7l3/temp/rewards_list_10_items.pkl'
+wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201109_202142-1k7mpwkl/temp/rewards_list_10_items.pkl'
 config = wandb.config
 
 log = logging.getLogger(__name__)
