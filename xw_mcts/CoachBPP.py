@@ -107,12 +107,14 @@ class CoachBPP():
             self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
 
-            generator_seed = np.random.randint(int(1e5))
+            # generator_seed = np.random.randint(int(1e5))
+            generator_seed = 0
             
             ep_scores = []
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
                 self.mcts = MCTS(self.game, self.args)
                 items_list = self.gen.items_generator(generator_seed)
+                generator_seed += 1
 
                 self.items_list = np.copy(items_list)
                 eval_results.append(self.executeEpisode())

@@ -16,12 +16,12 @@ import pickle
 wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
-wandb.config.binW, wandb.config.binH = 15, 10
-wandb.config.binH_min = 7
+wandb.config.binW, wandb.config.binH = 15, 15
+wandb.config.binH_min = 2
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
 wandb.config.numIters = 100 #total games
-wandb.config.numEps = 2 # repeat #times for each game
+wandb.config.numEps = 1 # repeat #times for each game
 wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
