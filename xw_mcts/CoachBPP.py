@@ -72,14 +72,14 @@ class CoachBPP():
             pi = self.mcts.get_best_action(bin_items_state, self.items_total_area, self.rewards_list)
             action = np.random.choice(len(pi), p=pi)
             # save action --> placement
-            cur_item, placement = int(action/(self.game.bin_height*self.game.bin_width)), action%(self.game.bin_height*self.game.bin_width)        
+            cur_item, placement = int(action/self.game.bin_width), int(action%(self.game.bin_width))
             item = items_list_board[cur_item]
             assert sum(sum(item)) > 0 # must choose a valid item
             # item is valid
             w = sum(item[0,:])
             h = sum(item[:,0])
-            (i, j) = (int(placement/self.game.bin_width), placement%self.game.bin_width)
-            placement_info['placement'].append([i, j, w, h]) # y, x, w, h
+
+            placement_info['placement'].append([placement, w, h]) # y, x, w, h
 
             board, items_list_board = self.game.getNextState(board, action, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -100,39 +100,43 @@ class CoachBPP():
         only if it wins >= updateThreshold fraction of games.
         """
 
+        eval_results = []
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
-            # generate a new game
             np.random.seed()
+            self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
+            self.items_total_area = self.gen.bin_height * self.gen.bin_width
+
             generator_seed = np.random.randint(int(1e5))
-            t = 0
-            seeds = [96890, 63470]
-            eval_results = []
+            
+            ep_scores = []
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
-                items_list = self.gen.items_generator(seeds[t])
+                self.mcts = MCTS(self.game, self.args)
+                items_list = self.gen.items_generator(generator_seed)
+
                 self.items_list = np.copy(items_list)
                 eval_results.append(self.executeEpisode())
-                self.rewards_list.append(self.ep_score)
-                wandb.log({"all scores": self.ep_score})
-                t += 1
+                # self.rewards_list.append(self.ep_score)
+                ep_scores.append(self.ep_score)
+            wandb.log({"iter scores": np.mean(ep_scores)})
 
-            with open('eval_results.pkl', 'wb') as f:
-                pickle.dump(eval_results, f)
-
-            # self.rewards_list.append(self.ep_score)
+            self.rewards_list.append(self.ep_score)
             # if score  = [], does len(self.rewards_list) change?
             if len(self.rewards_list) > self.args.numScoresForRank:
-                self.rewards_list.pop(0)
+                idx = np.argmin(self.rewards_list)
+                self.rewards_list.pop(idx)
             # print('reward buffer for ranked reward: ', self.rewards_list)                
-            wandb.log({"final score for each game": self.ep_score}, step=i)
+
             # percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
             # wandb.log({"optimality percentage": percentage_optim,
             #             "min reward": np.min(ep_scores),
             #             "max reward": np.max(ep_scores)}, step=i)
             # print('-----------mean reward of Iter ', i, 'is-----------', np.mean(ep_scores))
-            
-            # save self.rewards_list in each iter
-            self.save_rewards_list()
+
+        with open('eval_results_mcts.pkl', 'wb') as f:
+            pickle.dump(eval_results, f)
+
+        self.save_rewards_list()
 
         
     def save_rewards_list(self):
@@ -169,63 +173,3 @@ class CoachBPP():
 
             # examples based on the model were already collected (loaded)
             self.skipFirstSelfPlay = True
-
-    def arena_playing(self, pmcts, nmcts, seeds_iter):
-        # if mean(scores)_n > mean(scores)_p, return 1, accept new model
-        p_scores = []
-        n_scores = []
-        # seeds for arena playing
-        random.seed()
-        arena_seeds = random.sample(seeds_iter, self.args.arenaCompare)
-
-        for t in tqdm(range(self.args.arenaCompare), desc="Arena playing"):
-            # generate game
-            # np.random.seed()
-            # generator_seed = np.random.randint(int(1e5))
-            generator_seed = arena_seeds[t]        
-            items_list = self.gen.items_generator(generator_seed)
-            items_list_p = np.copy(items_list)
-            items_list_n = np.copy(items_list)
-            
-            # pmcts
-            board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(items_list_p)
-            bin_items_state = self.game.getBinItem(board, items_list_board)
-
-            game_ended = 0
-
-            while game_ended == 0:
-                # choose action greedily
-                pi = pmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
-                action = np.random.choice(len(pi), p=pi)
-
-                board, items_list_board = self.game.getNextState(board, action, items_list_board)
-                next_bin_items_state = self.game.getBinItem(board, items_list_board)
-                bin_items_state = next_bin_items_state
-                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
-            p_scores.append(score)
-
-            #nmcts
-            board = self.game.getInitBoard()
-            items_list_board = self.game.getInitItems(items_list_n)
-            bin_items_state = self.game.getBinItem(board, items_list_board)
-
-            game_ended = 0
-            while game_ended == 0:
-                # choose action greedily
-                pi = nmcts.getActionProb(bin_items_state, self.items_total_area, self.rewards_list, greedy_a=0)
-                action = np.random.choice(len(pi), p=pi)
-
-                board, items_list_board = self.game.getNextState(board, action, items_list_board)
-                next_bin_items_state = self.game.getBinItem(board, items_list_board)
-                bin_items_state = next_bin_items_state
-                game_ended, score = self.game.getGameEnded(bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
-            n_scores.append(score)
-
-        # percentage_optim_n = sum([item == 1.0 for item in n_scores]) / len(n_scores)
-        # percentage_optim_p = sum([item == 1.0 for item in p_scores]) / len(p_scores)
-
-        if np.mean(n_scores) >= np.mean(p_scores):
-            return 1
-        else:
-            return 0
