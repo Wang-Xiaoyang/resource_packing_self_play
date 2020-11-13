@@ -64,7 +64,7 @@ class Bin():
             adjacent_direction += 1
         else:
             for t in range(self.bin_height):
-                if self[t, j] == 0:
+                if sum(self[t, j:j+w]) == 0:
                     break
             if self[t, j-1] > 0:
                 adjacent_direction += 1
