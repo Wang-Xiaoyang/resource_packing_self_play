@@ -67,49 +67,45 @@ class CoachBPP():
         placement_info = {'placement': [],
                     'score': 0,}
 
-        # first item
-        episodeStep += 1
+        # estimate height
         bin_items_state = self.game.getBinItem(board, items_list_board)
-        size_list = []
         height_list = []
+        size_list = []
         for i in range(len(self.items_list)):
             size_list.append(self.items_list[i][0]*self.items_list[i][1])
             height_list.append(self.items_list[i][1])
-        self.items_total_area = sum(size_list)
-        cur_item = np.argmax(height_list)
-        item = items_list_board[cur_item]
-        w = sum(item[0,:])
-        h = sum(item[:,0])
-        size_list[cur_item] = 0
-        height_list[cur_item] = 0
-        cur_action = cur_item*(self.game.bin_width)
-        _, placement_ = int(cur_action/self.game.bin_width), int(cur_action%(self.game.bin_width))
-        placement_info['placement'].append([placement_, w, h]) # y, x, w, h
+        h_e =  int(max(np.ceil(self.items_total_area / self.game.bin_width), max(height_list)))
 
-        board, items_list_board = self.game.getNextState(board, cur_action, items_list_board)
-        next_bin_items_state = self.game.getBinItem(board, items_list_board)
+        alpha_heuristics = []
+        for i in range(h_e):
+            total_ = 0
+            for j in range(len(self.items_list)):
+                if self.items_list[j][1] >= i+1:
+                    total_ += self.items_list[j][0]
+            alpha_heuristics.append(total_/len(self.items_list))
+
+        Is = []
+        for i in range(len(self.items_list)):
+            tmp = [sum(items_list_board[i][t]) for t in range(h_e)]
+            Is.append(tmp)
 
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
-            all_wasted = []
-            for cur_item in range(len(items_list_board)):
-                if sum(sum(items_list_board[cur_item])) == 0:
-                    all_wasted.append(1e5)
-                    continue
-                valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
-                action = valid_actions[0]
-                board_, _ = self.game.getNextState(board, action, items_list_board)
-                min_bin = self.game.get_minimal_bin(board_)
-                wasted = min_bin**2 - sum(sum(board_))
-                all_wasted.append(wasted)
 
-            # find item
-            # cur_item = np.argmax(size_list)
-            # cur_item = np.argmax(height_list)
-            cur_item = np.argmin(all_wasted)
-            size_list[cur_item] = 0
-            height_list[cur_item] = 0
+            remaining_cap = [(15 - sum(board[t]))/15 for t in range(h_e)]
+
+            wdps = []
+            for t in range(len(items_list_board)):
+                if sum(sum(items_list_board[t])) == 0:
+                    wdps.append(-1e5)
+                    continue
+                else:
+                    wdp = sum([x*y*z for x,y,z in zip(alpha_heuristics,Is[t], remaining_cap)])
+                    wdps.append(wdp)
+            
+            cur_item = np.argmax(wdps)
+
             # find placement
             valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
             as_ = []
@@ -178,7 +174,7 @@ class CoachBPP():
             
             # save self.rewards_list in each iter
             # self.save_rewards_list()
-        with open('eval_results_lego.pkl', 'wb') as f:
+        with open('eval_results_hvraa.pkl', 'wb') as f:
             pickle.dump(eval_results, f)
 
         
