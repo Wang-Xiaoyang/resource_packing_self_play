@@ -62,7 +62,6 @@ class CoachBPP():
         """
         board = self.game.getInitBoard()
         items_list_board = self.game.getInitItems(self.items_list)
-        self.curPlayer = 1
         episodeStep = 0
 
         placement_info = {'placement': [],
@@ -72,18 +71,20 @@ class CoachBPP():
         episodeStep += 1
         bin_items_state = self.game.getBinItem(board, items_list_board)
         size_list = []
+        height_list = []
         for i in range(len(self.items_list)):
             size_list.append(self.items_list[i][0]*self.items_list[i][1])
+            height_list.append(self.items_list[i][1])
         self.items_total_area = sum(size_list)
-        cur_item = np.argmax(size_list)
+        cur_item = np.argmax(height_list)
         item = items_list_board[cur_item]
         w = sum(item[0,:])
         h = sum(item[:,0])
         size_list[cur_item] = 0
-        cur_action = cur_item*(self.game.bin_height*self.game.bin_width)
-        _, placement_ = int(cur_action/(self.game.bin_height*self.game.bin_width)), cur_action%(self.game.bin_height*self.game.bin_width)
-        (i, j) = (int(placement_/self.game.bin_width), placement_%self.game.bin_width)
-        placement_info['placement'].append([i, j, w, h]) # y, x, w, h
+        height_list[cur_item] = 0
+        cur_action = cur_item*(self.game.bin_width)
+        _, placement_ = int(cur_action/self.game.bin_width), int(cur_action%(self.game.bin_width))
+        placement_info['placement'].append([placement_, w, h]) # y, x, w, h
 
         board, items_list_board = self.game.getNextState(board, cur_action, items_list_board)
         next_bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -91,24 +92,38 @@ class CoachBPP():
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
+            all_wasted = []
+            for cur_item in range(len(items_list_board)):
+                if sum(sum(items_list_board[cur_item])) == 0:
+                    all_wasted.append(1e5)
+                    continue
+                valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
+                action = valid_actions[0]
+                board_, _ = self.game.getNextState(board, action, items_list_board)
+                min_bin = self.game.get_minimal_bin(board_)
+                wasted = min_bin**2 - sum(sum(board_))
+                all_wasted.append(wasted)
+
             # find item
-            cur_item = np.argmax(size_list)
+            # cur_item = np.argmax(size_list)
+            # cur_item = np.argmax(height_list)
+            cur_item = np.argmin(all_wasted)
             size_list[cur_item] = 0
+            height_list[cur_item] = 0
             # find placement
             valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
             as_ = []
             for ii in valid_actions:
                 board_, _ = self.game.getNextState(board, ii, items_list_board)
-                as_.append(self.game.get_minimal_bin(board_))
+                as_.append(self.game.get_minimal_bin_height(board_))
             action_chosen = valid_actions[np.argmin(as_)]
 
             item = items_list_board[cur_item]
             w = sum(item[0,:])
             h = sum(item[:,0])
 
-            _, placement_ = int(action_chosen/(self.game.bin_height*self.game.bin_width)), action_chosen%(self.game.bin_height*self.game.bin_width)
-            (i, j) = (int(placement_/self.game.bin_width), placement_%self.game.bin_width)
-            placement_info['placement'].append([i, j, w, h]) # y, x, w, h
+            _, placement_ = int(action_chosen/self.game.bin_width), int(action_chosen%(self.game.bin_width))
+            placement_info['placement'].append([placement_, w, h]) # y, x, w, h
 
             board, items_list_board = self.game.getNextState(board, action_chosen, items_list_board)
             next_bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -128,16 +143,22 @@ class CoachBPP():
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
-
+        eval_results = []
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
             # generate a new game
-            np.random.seed()
-            generator_seed = np.random.randint(int(1e5))
-            t = 0
-            seeds = [96890, 63470] # - two seeds used for self-play vs MCTS results visualization 
-            eval_results = []
+            np.random.seed(i-1)
+            self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
+            self.items_total_area = self.gen.bin_height * self.gen.bin_width
+            
+            generator_seed = 0
+
+            # seeds = [96890, 63470] # - two seeds used for self-play vs MCTS results visualization 
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
+                # generator_seed = np.random.randint(int(1e5))
+                items_list = self.gen.items_generator(generator_seed)
+                self.items_list = np.copy(items_list)
+                generator_seed += 1
                 # items_list = self.gen.items_generator(seeds[t])
                 # generator_seed = np.random.randint(int(1e5))
                 # items_list = self.gen.items_generator(generator_seed)
@@ -146,15 +167,7 @@ class CoachBPP():
                 eval_results.append(self.executeEpisode())
                 self.rewards_list.append(self.ep_score)
                 wandb.log({"all scores": self.ep_score})
-                t += 1
 
-            with open('eval_results_lego.pkl', 'wb') as f:
-                pickle.dump(eval_results, f)
-
-            # self.rewards_list.append(self.ep_score)
-            # if score  = [], does len(self.rewards_list) change?
-            if len(self.rewards_list) > self.args.numScoresForRank:
-                self.rewards_list.pop(0)
             # print('reward buffer for ranked reward: ', self.rewards_list)                
             wandb.log({"final score for each game": self.ep_score}, step=i)
             # percentage_optim = sum([item == 1.0 for item in ep_scores]) / len(ep_scores)
@@ -164,7 +177,9 @@ class CoachBPP():
             # print('-----------mean reward of Iter ', i, 'is-----------', np.mean(ep_scores))
             
             # save self.rewards_list in each iter
-            self.save_rewards_list()
+            # self.save_rewards_list()
+        with open('eval_results_lego.pkl', 'wb') as f:
+            pickle.dump(eval_results, f)
 
         
     def save_rewards_list(self):

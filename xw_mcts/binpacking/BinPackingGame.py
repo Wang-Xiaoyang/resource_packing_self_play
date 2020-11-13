@@ -18,6 +18,8 @@ class BinPackingGame(Game):
         self.num_items = num_items
         self.n = n # number of bins (consider later - xw)
         self.cur_item = 0 # counter(idx) for item(s) being considered
+        self.sum_h = 0
+        self.max_h = 0
 
     def getInitBoard(self):
         # return initial board (numpy board)
@@ -30,18 +32,22 @@ class BinPackingGame(Game):
 
     def getActionSize(self):
         # return number of actions
-        # total number of actions in this board
-        # return (self.bin_height*self.bin_width)*self.num_items + self.num_items
-        return self.bin_height*self.bin_width*self.num_items
+        return self.bin_width * self.num_items
 
     def getInitItems(self, items_list):
         # items_list from item generator
         items_list_board = []
+        sum_h = 0
+        max_h = 0
         for i in range(self.num_items):
             w, h, _, _ = items_list[i]
             item_board = self.getInitBoard()
             item_board[0:h, 0:w] = 1
             items_list_board += [item_board]
+            sum_h += h
+            max_h = max(max_h, h)
+        self.sum_h = sum_h
+        self.max_h = max_h
         return items_list_board
     
     def getItemsUpdated(self, items_list_board, cur_item):
@@ -53,49 +59,21 @@ class BinPackingGame(Game):
         # get next board, to see if game ended - xw
         # also the next state to keep game going!
 
-        # if player takes action on board, return next (board,player)
         # action must be a valid move
         items_list_board = np.copy(items_list_board)
         b = Bin(self.bin_width, self.bin_height)
         b.pieces = np.copy(board)
-        # # action: item*(bin_h*bin_w) + [0:num_items] (for pass)
-        # cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)
-        # if cur_item == self.num_items: # pass item or do nothing
-        #     items_list_board = self.getItemsUpdated(items_list_board, placement)
-        #     return b.pieces, items_list_board
-        # item = items_list_board[cur_item] # board format
-        # assert sum(sum(item)) > 0 # must choose a valid item
-        cur_item, placement = int(action/(self.bin_height*self.bin_width)), action%(self.bin_height*self.bin_width)        
+
+        cur_item, placement = int(action/self.bin_width), int(action%(self.bin_width))        
         item = items_list_board[cur_item]
         assert sum(sum(item)) > 0 # must choose a valid item
         # item is valid
         w = sum(item[0,:])
         h = sum(item[:,0])
-        move = (int(placement/self.bin_width), placement%self.bin_width)
+        move = placement
         b.execute_move(move, w, h)
         items_list_board = self.getItemsUpdated(items_list_board, cur_item)
         return (b.pieces, items_list_board)
-
-    # def getValidMoves(self, board):
-    #     # return a fixed size binary vector
-    #     # size is the same with getActionSize; the value is 1 for valid moves in the 'board'
-    #     valids = [0]*self.getActionSize()
-    #     b = Bin(self.bin_width, self.bin_height)
-    #     b.pieces = np.copy(board[0])
-    #     pass_valids = [0] * self.num_items
-    #     legal_moves = []
-    #     for item in range(self.num_items):
-    #         if sum(sum(board[item+1])) == 0:
-    #             continue
-    #         legal_moves += b.get_moves_for_square(board[1:], item)
-    #         pass_valids[item] = 1
-    #     if len(legal_moves)==0:
-    #         valids[-self.num_items:] = pass_valids
-    #         return np.array(valids)
-    #     for item, x, y in legal_moves:
-    #         valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
-    #     valids[-self.num_items:] = pass_valids
-    #     return np.array(valids)
 
     def getValidMoves(self, board):
         # return a fixed size binary vector
@@ -109,25 +87,9 @@ class BinPackingGame(Game):
                 continue
             legal_moves += b.get_moves_for_square(board[1:], item)
         assert len(legal_moves) > 0
-        for item, x, y in legal_moves:
-            valids[(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)] = 1
+        for item, x in legal_moves:
+            valids[(item*(self.bin_width)+x)] = 1
         return np.array(valids)
-
-    def getValidMoveForItem(self, board, item):
-        valids = [0]*self.getActionSize()
-        b = Bin(self.bin_width, self.bin_height)
-        b.pieces = np.copy(board[0])
-        legal_moves = []
-        assert sum(sum(board[item+1])) != 0
-
-        legal_moves += b.get_moves_for_square(board[1:], item)
-        actions = []
-        if legal_moves != []:
-            for _, x, y in legal_moves:
-                actions.append(item*(self.bin_height*self.bin_width)+x*self.bin_width+y)
-            return actions
-        else:
-            return actions
 
     def has_valid_moves(self, board):
         # return a fixed size binary vector
@@ -143,6 +105,22 @@ class BinPackingGame(Game):
             if len(moves) > 0:
                 break
         return len(moves) > 0
+
+    def getValidMoveForItem(self, board, item):
+        valids = [0]*self.getActionSize()
+        b = Bin(self.bin_width, self.bin_height)
+        b.pieces = np.copy(board[0])
+        legal_moves = []
+        assert sum(sum(board[item+1])) != 0
+
+        legal_moves += b.get_moves_for_square(board[1:], item)
+        actions = []
+        if legal_moves != []:
+            for _, x in legal_moves:
+                actions.append((item*(self.bin_width)+x))
+            return actions
+        else:
+            return actions
 
     def getGameEnded(self, total_board, items_total_area, rewards_list, alpha):
         # return 0 if not ended, 1 if win (higher than 0.75 reward), -1 if lost
@@ -215,23 +193,29 @@ class BinPackingGame(Game):
         w = j + 1
         a = max([h, w])
         return a
+
+    def get_minimal_bin_height(self, board):
+        for i in reversed(range(self.bin_height)):
+            if sum(board[i,:]) > 0:
+                break
+        h = i + 1
+        return h
     
     def getRankedReward(self, total_board, items_total_area, rewards_list, alpha):
         # alpha: the ranked reward parameter
         rewards_list = rewards_list.copy()
 
+        # get actual reward
         if sum(sum(total_board[0,:])) != items_total_area:
             # some items are discarded instead of being placed in the bin
-            # r = items_total_area / (self.bin_width*self.bin_height*2) # here 2 is a penalty parameter - indicating not all items are placed
-            # r = 0 # in consistent with ranked reward paper: if not all items places, r = 0
-            # temp
-            a = self.get_minimal_bin(total_board[0,:])
-            r = items_total_area / (a*a)
+            r = 0 # in consistent with ranked reward paper: if not all items places, r = 0
         else:
-            a = self.get_minimal_bin(total_board[0,:])
-            r = items_total_area / (a*a)
-        # r = sum(sum(total_board[0,:])) / items_total_area
+            # 1106: reward #1: [minimal resource usage in theory] / [actual resource usage]
+            r = max(np.ceil(items_total_area / self.bin_width), self.max_h) / self.get_minimal_bin_height(total_board[0,:])
+            # 1106: reward #2: [sum of resource requirements] / [actual resource usage] - does it make sense???
+            # r = self.sum_h / self.get_minimal_bin_height(total_board[0,:])
 
+        # ranked reward
         if len(rewards_list) == 0:
             return 1, r
         sorted_reward = np.sort(rewards_list)

@@ -14,12 +14,13 @@ import wandb
 import pickle
 
 wandb.init(entity="xiaoyang",
-            project="ranked-reward-bin-packing-tmp-remove")
+            project="resource-packing-self-play")
 # wandb config parameters
-wandb.config.binW, wandb.config.binH = 10, 10
+wandb.config.binW, wandb.config.binH = 15, 15
+wandb.config.binH_min = 2
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
-wandb.config.numIters = 1 #total games
+wandb.config.numIters = 100 #total games
 wandb.config.numEps = 1 # repeat #times for each game
 wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
@@ -64,6 +65,8 @@ args = dotdict({
     'numItems': config.numItems,
     'numBins': config.numBins,
     'iterStepThreshold': config.iterStepThreshold,
+    'binH_min': config.binH_min,
+    'binH': config.binH,
 
     'lr': config.lr,
     'dropout': config.dropout,
