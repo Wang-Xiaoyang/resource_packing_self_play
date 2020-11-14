@@ -103,7 +103,7 @@ class CoachBPP():
         eval_results = []
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
-            np.random.seed()
+            np.random.seed(i-1)
             self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
 
