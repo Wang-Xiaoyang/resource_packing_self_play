@@ -4,6 +4,7 @@ sys.path.append('..')
 from Game import Game
 from .BinPackingLogic import Bin
 import numpy as np
+import random
 
 class BinPackingGame(Game):
     # square_content = {
@@ -299,3 +300,29 @@ class ItemsGenerator():
                 item_list.append(item_s2)
                 item_list.pop(idx_item)
         return item_list
+
+    def items_generator_set_one_dim(self, seed, max_w, numbers_for_one_dim, mode='random'):
+        # for 2D items: given the value of one dimension
+        # generate items accordingly
+        # mode: 
+        #   'random' - the value of the other dimension is random (items won't perfectly fit a bin)
+        #   'segmentation' - segment the bin to generate items that could fit (normal bin packing)
+        np.random.seed(seed)
+        random.seed(seed)
+        item_list = []
+        if mode == 'random':
+            while True:
+                randomlist = list(range(1, max_w))
+                dim_values = random.choices(randomlist, k=len(numbers_for_one_dim))
+                total_area = 0
+                max_h = 0
+                for i in range(len(numbers_for_one_dim)):
+                    total_area += numbers_for_one_dim[i] * dim_values[i]
+                    if dim_values[i] > max_h:
+                        max_h = dim_values[i]
+                # if total_area / self.bin_width / max_h > 0.5 and total_area / self.bin_width / max_h < 1.1:
+                if total_area <= 0.7 * self.bin_height * self.bin_width and max_h < (total_area/self.bin_width):
+                    break
+        for i in range(len(numbers_for_one_dim)):
+            item_list.append([int(numbers_for_one_dim[i]), int(dim_values[i]), 0, 0])
+        return item_list 
