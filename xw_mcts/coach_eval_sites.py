@@ -144,7 +144,7 @@ class CoachBPP():
             items_list = self.gen.items_generator_set_one_dim(generator_seed, max_w, self.cpu_list, mode='random')
             generator_seed += 1
             # items_list = self.gen.items_generator(generator_seed)
-            items_list_eval = np.copy(items_list)
+            self.items_list = np.copy(items_list)
             self.items_total_area = 0
             for i in range(len(items_list)):
                 self.items_total_area += items_list[i][1] * items_list[i][0]
@@ -156,7 +156,7 @@ class CoachBPP():
             # items_list = self.gen.items_generator(self.args.seed)
             # self.items_list = np.copy(items_list)
 
-            eval_results.append(self.execute_ep_eval(items_list_eval))
+            eval_results.append(self.execute_ep_eval())
             # # use the same func with training; only record scores
             # self.items_list = np.copy(items_list_eval)
             # placement_info = {'placement': [],
