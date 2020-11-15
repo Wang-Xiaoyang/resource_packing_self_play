@@ -98,11 +98,14 @@ class CoachBPP():
                     all_wasted.append(1e5)
                     continue
                 valid_actions = self.game.getValidMoveForItem(bin_items_state, cur_item)
-                action = valid_actions[0]
-                board_, _ = self.game.getNextState(board, action, items_list_board)
-                min_bin = self.game.get_minimal_bin(board_)
-                wasted = min_bin**2 - sum(sum(board_))
-                all_wasted.append(wasted)
+                if len(valid_actions) > 0:
+                    action = valid_actions[0]
+                    board_, _ = self.game.getNextState(board, action, items_list_board)
+                    min_bin = self.game.get_minimal_bin(board_)
+                    wasted = min_bin**2 - sum(sum(board_))
+                    all_wasted.append(wasted)
+                else:
+                    all_wasted.append(1e5)
 
             # find item
             # cur_item = np.argmax(size_list)
@@ -144,14 +147,13 @@ class CoachBPP():
         only if it wins >= updateThreshold fraction of games.
         """
         eval_results = []
+        generator_seed = 0
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
             # generate a new game
             np.random.seed(i-1)
             self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
-            
-            generator_seed = 0
 
             # seeds = [96890, 63470] # - two seeds used for self-play vs MCTS results visualization 
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):

@@ -88,7 +88,7 @@ args = dotdict({
 def main():
     log.info('Loading %s...', Game.__name__)
     # load cpu requirements for real sites
-    with open('./du1_10_sites_6_4_time_17.pkl', 'rb') as fb:
+    with open('./du2_10_sites_6_4_time_17.pkl', 'rb') as fb:
         sites_file = pickle.load(fb)
     cpus_list = sites_file['cpu_to_pack']
     # g = Game(config.binW, config.binH, config.numItems, config.numBins)

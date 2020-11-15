@@ -180,7 +180,7 @@ class CoachBPP():
             # generator_seed = np.random.choice(self.seeds)
             # np.random.seed()
             # generator_seed = np.random.randint(int(1e5))
-            max_w = 13
+            max_w = 6
             items_list = self.gen.items_generator_set_one_dim(generator_seed, max_w, self.cpu_list, mode='random')
             generator_seed += 1
             # items_list = self.gen.items_generator(generator_seed)
@@ -206,5 +206,5 @@ class CoachBPP():
             # eval_results.append(placement_info)
 
 
-            with open('eval_results_real_sites_du1_lego.pkl', 'wb') as f:
+            with open('eval_results_real_sites_du2_lego.pkl', 'wb') as f:
                 pickle.dump(eval_results, f)
