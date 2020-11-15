@@ -101,6 +101,7 @@ class CoachBPP():
         """
 
         eval_results = []
+        generator_seed = 0
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
             np.random.seed(i-1)
@@ -108,8 +109,7 @@ class CoachBPP():
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
 
             # generator_seed = np.random.randint(int(1e5))
-            generator_seed = 0
-            
+                        
             ep_scores = []
             for _ in tqdm(range(self.args.numEps), desc="Running MCTS for current game"):
                 self.mcts = MCTS(self.game, self.args)
