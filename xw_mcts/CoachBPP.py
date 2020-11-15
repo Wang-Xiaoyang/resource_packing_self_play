@@ -105,7 +105,8 @@ class CoachBPP():
                     wasted = min_bin**2 - sum(sum(board_))
                     all_wasted.append(wasted)
                 else:
-                    all_wasted.append(1e5)
+                    placement_info['score'] = 0
+                    return placement_info
 
             # find item
             # cur_item = np.argmax(size_list)
