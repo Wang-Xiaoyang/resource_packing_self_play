@@ -312,7 +312,8 @@ class ItemsGenerator():
                     if dim_values[i] > max_h:
                         max_h = dim_values[i]
                 # if total_area / self.bin_width / max_h > 0.5 and total_area / self.bin_width / max_h < 1.1:
-                if total_area <= 0.7 * self.bin_height * self.bin_width and max_h < (total_area/self.bin_width):
+                # 0.5 for du2; 0.7 for du1
+                if total_area <= 0.5 * self.bin_height * self.bin_width and max_h < (total_area/self.bin_width):
                     break
         for i in range(len(numbers_for_one_dim)):
             item_list.append([int(numbers_for_one_dim[i]), int(dim_values[i]), 0, 0])
