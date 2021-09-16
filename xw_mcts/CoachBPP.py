@@ -14,7 +14,7 @@ from Arena import Arena
 from MCTS_bpp import MCTS
 
 import wandb
-# import time
+import time
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +67,7 @@ class CoachBPP():
         placement_info = {'placement': [],
                     'score': 0,}
 
+        t0 = time.time()
         # estimate height
         bin_items_state = self.game.getBinItem(board, items_list_board)
         height_list = []
@@ -126,10 +127,11 @@ class CoachBPP():
             
             r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
 
-            if r != 0:  
+            if r != 0:
+                t_elapsed = time.time() - t0
                 self.ep_score = score
                 placement_info['score'] = score
-                return placement_info
+                return placement_info, t_elapsed
 
     def learn(self):
         """
@@ -140,6 +142,7 @@ class CoachBPP():
         only if it wins >= updateThreshold fraction of games.
         """
         eval_results = []
+        t_total = 0
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
             # generate a new game
@@ -160,9 +163,11 @@ class CoachBPP():
                 # items_list = self.gen.items_generator(generator_seed)
                 # self.items_list = np.copy(items_list)
                 # define self.items_list
-                eval_results.append(self.executeEpisode())
+                placement_info, t_elapsed = self.executeEpisode()
+                eval_results.append(placement_info)
                 self.rewards_list.append(self.ep_score)
                 wandb.log({"all scores": self.ep_score})
+                t_total += t_elapsed
 
             # print('reward buffer for ranked reward: ', self.rewards_list)                
             wandb.log({"final score for each game": self.ep_score}, step=i)
@@ -177,6 +182,7 @@ class CoachBPP():
         with open('eval_results_hvraa.pkl', 'wb') as f:
             pickle.dump(eval_results, f)
 
+        print('average elapsed time', t_total/self.args.numIters)
         
     def save_rewards_list(self):
         file_n = 'rewards_list_' + str(self.args.numItems) + '_items.pkl'
