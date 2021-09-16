@@ -114,18 +114,20 @@ class CoachBPP():
             # store seeds in this iter
             seeds_iter = []
             # re-init a generator: for different height
-            np.random.seed()
+            np.random.seed(i-1)
             self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
 
+            generator_seed = 0
             if not self.skipFirstSelfPlay or i > 1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
                 for _ in tqdm(range(self.args.numEps), desc="Self Play"):
                     self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
                     # 1. re-generate items: different game
                     # np.random.seed()
-                    generator_seed = np.random.randint(int(1e5))
+                    # generator_seed = np.random.randint(int(1e5))
                     items_list = self.gen.items_generator(generator_seed)
+                    generator_seed += 1
                     seeds_iter.append(generator_seed)
                     self.items_list = np.copy(items_list)
 
@@ -279,16 +281,17 @@ class CoachBPP():
         log.info(f'Starting Evaluation')
 
         eval_results = []
-
-        for _ in tqdm(range(self.args.numEps), desc="Self Play"):
+        generator_seed = 0
+        for i in tqdm(range(self.args.numEps), desc="Self Play"):
             self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
             # 1. re-generate items: different game
-            np.random.seed()
+            np.random.seed(i)
             self.gen.bin_height = np.random.randint(self.args.binH_min, self.args.binH+1)
             self.items_total_area = self.gen.bin_height * self.gen.bin_width
 
-            generator_seed = np.random.randint(int(1e5))
+            # generator_seed = np.random.randint(int(1e5))
             items_list = self.gen.items_generator(generator_seed)
+            generator_seed += 1
             items_list_eval = np.copy(items_list)
             # # 2. same game (items shapes fixed)
             # items_list = self.gen.items_generator(self.args.seed)

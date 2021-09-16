@@ -2,7 +2,8 @@ import logging
 
 import coloredlogs
 
-from CoachBPP import CoachBPP as Coach
+# from CoachBPP import CoachBPP as Coach
+from coach_eval_sites import CoachBPP as Coach
 from binpacking.BinPackingGame import BinPackingGame as Game
 from binpacking.BinPackingGame import ItemsGenerator as Generator
 
@@ -16,23 +17,21 @@ import pickle
 wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
-# W: time; H: resource
-wandb.config.binW, wandb.config.binH = 15, 15
-wandb.config.binH_min = 2
+wandb.config.binW, wandb.config.binH = 15, 10
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
 wandb.config.numIters = 200 #50
-wandb.config.numEps = 100
-wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
+wandb.config.numEps = 20
+wandb.config.epStepThreshold = 100  # choose actions greedily after # steps in one episode; set to 100: always stochastic; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
-wandb.config.numMCTSSims = 200 #300
-wandb.config.arenaCompare = 10 #20; for each agent
+wandb.config.numMCTSSims = 200 #100
+wandb.config.arenaCompare = 5 #20; for each agent
 wandb.config.cpuct = 1 #?
 wandb.config.alpha = 0.75
 wandb.config.seed = 100
-wandb.config.numItersForTrainExamplesHistory = 50 # keep training samples for # iters
-wandb.config.numScoresForRank = 100 # total number of saved reward (for ranked reward); 100
+wandb.config.numItersForTrainExamplesHistory = 200 # keep training samples for # iters
+wandb.config.numScoresForRank = 250 # total number of saved reward (for ranked reward)
 wandb.config.lr = 0.001
 wandb.config.dropout = 0.1
 wandb.config.epochs = 10
@@ -41,13 +40,11 @@ wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
 wandb.config.load_model = True
-# run-20201113_144028-2r6rx552 - best on test set
-# run-20201113_144231-15y0rcng
-# run-20201113_144119-2c3v5fde
-# run-20201109_202142-1k7mpwkl
-wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp','temp.pth.tar')
+wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144028-2r6rx552/temp','temp.pth.tar')
 wandb.config.load_rewards_list = True
-wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp/rewards_list_10_items.pkl'
+wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144028-2r6rx552/temp/rewards_list_10_items.pkl'
+config = wandb.config
+
 config = wandb.config
 
 log = logging.getLogger(__name__)
@@ -58,7 +55,7 @@ coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
 args = dotdict({
     'numIters': config.numIters,
     'numEps': config.numEps,              # Number of complete self-play games to simulate during a new iteration.
-#    'epStepThreshold': config.epStepThreshold,        #
+    'epStepThreshold': config.epStepThreshold,        #
     'updateThreshold': config.updateThreshold,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': config.maxlenOfQueue,    # Number of game examples to train the neural networks.
     'numMCTSSims': config.numMCTSSims,          # Number of games moves for MCTS to simulate.
@@ -69,9 +66,6 @@ args = dotdict({
     'numScoresForRank': config.numScoresForRank,
     'numItems': config.numItems,
     'numBins': config.numBins,
-    'iterStepThreshold': config.iterStepThreshold,
-    'binH_min': config.binH_min,
-    'binH': config.binH,
 
     'lr': config.lr,
     'dropout': config.dropout,
@@ -93,10 +87,15 @@ args = dotdict({
 
 def main():
     log.info('Loading %s...', Game.__name__)
+    # load cpu requirements for real sites
+    with open('./du1_10_sites_6_4_time_17.pkl', 'rb') as fb:
+        sites_file = pickle.load(fb)
+    cpus_list = sites_file['cpu_to_pack']
     # g = Game(config.binW, config.binH, config.numItems, config.numBins)
     g = Game(config.virtual_bin_w, config.virtual_bin_h, config.numItems, config.numBins)
     gen = Generator(config.binW, config.binH, config.numItems)
-    items_list = gen.items_generator(args.seed)
+    # items_list = gen.items_generator(args.seed)
+    items_list = gen.items_generator_set_one_dim(args.seed, 13, cpus_list, mode='random')
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g, args)
@@ -112,10 +111,14 @@ def main():
         log.info('Loading reward list file "%s"...', args.load_rewards_list_file)
         with open(args.load_rewards_list_file, 'rb') as f:
             saved_rewards_list = pickle.load(f)
-        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args, saved_rewards_list=saved_rewards_list)
+        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args, cpus_list, saved_rewards_list=saved_rewards_list)
     else:
         log.info('Not laoding reward list file')
-        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args)        
+        c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args, cpus_list)  
+
+    # if args.load_model:
+    #     log.info("Loading 'trainExamples' from file...")
+    #     c.loadTrainExamples()
 
     # log.info('Starting the learning process 🎉')
     # c.learn()
@@ -123,9 +126,9 @@ def main():
     log.info('Starting the evaluating process 🎉')
     c.run_eps_save()
 
-    # save trained model:
-    wandb.save(args.checkpoint + 'temp.pth.tar')
-    wandb.save(args.checkpoint + 'best.pth.tar')
+    # # save trained model:
+    # wandb.save(args.checkpoint + 'temp.pth.tar')
+    # wandb.save(args.checkpoint + 'best.pth.tar')
 
 if __name__ == "__main__":
     main()

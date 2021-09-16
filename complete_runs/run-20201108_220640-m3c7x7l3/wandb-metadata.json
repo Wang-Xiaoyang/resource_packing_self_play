@@ -1,0 +1,22 @@
+{
+    "root": "/xw_mcts",
+    "program": "main_bpp.py",
+    "codePath": "main_bpp.py",
+    "startedAt": "2020-11-08T22:06:40.990326",
+    "host": "aca3f084645f",
+    "username": "root",
+    "executable": "/usr/bin/python3",
+    "os": "Linux-4.15.0-55-generic-x86_64-with-Ubuntu-18.04-bionic",
+    "python": "3.6.9",
+    "gpu": "GeForce RTX 2080 Ti",
+    "gpu_count": 1,
+    "cpu_count": 20,
+    "cuda": "10.1.243",
+    "args": [],
+    "state": "finished",
+    "jobType": null,
+    "mode": "run",
+    "project": "resource-packing-self-play",
+    "heartbeatAt": "2020-11-09T04:29:53.105324",
+    "exitcode": 0
+}

@@ -17,12 +17,12 @@ wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
 # W: time; H: resource
-wandb.config.binW, wandb.config.binH = 15, 15
-wandb.config.binH_min = 2
+wandb.config.binW, wandb.config.binH = 15, 10
+wandb.config.binH_min = 7
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
-wandb.config.numIters = 200 #50
-wandb.config.numEps = 100
+wandb.config.numIters = 300 #50
+wandb.config.numEps = 20
 wandb.config.iterStepThreshold = 50  # choose actions greedily after # iters in training; exploration vs exploitation
 wandb.config.updateThreshold = 0.6
 wandb.config.maxlenOfQueue = 200000
@@ -40,14 +40,10 @@ wandb.config.batch_size = 64
 wandb.config.cuda = torch.cuda.is_available()
 wandb.config.num_channels = 256 # 512
 wandb.config.nnet_type = 'ResNet'
-wandb.config.load_model = True
-# run-20201113_144028-2r6rx552 - best on test set
-# run-20201113_144231-15y0rcng
-# run-20201113_144119-2c3v5fde
-# run-20201109_202142-1k7mpwkl
-wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp','temp.pth.tar')
-wandb.config.load_rewards_list = True
-wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp/rewards_list_10_items.pkl'
+wandb.config.load_model = False
+wandb.config.load_folder_file = ('/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp','best.pth.tar')
+wandb.config.load_rewards_list = False
+wandb.config.load_rewards_list_file = '/home/xw17070/Documents/bin-packing-r2/xw_mcts/temp/rewards_list_10_items.pkl'
 config = wandb.config
 
 log = logging.getLogger(__name__)
@@ -117,11 +113,12 @@ def main():
         log.info('Not laoding reward list file')
         c = Coach(g, nnet, items_list, (config.binW*config.binH), gen, args)        
 
-    # log.info('Starting the learning process 🎉')
-    # c.learn()
+    if args.load_model:
+        log.info("Loading 'trainExamples' from file...")
+        c.loadTrainExamples()
 
-    log.info('Starting the evaluating process 🎉')
-    c.run_eps_save()
+    log.info('Starting the learning process 🎉')
+    c.learn()
 
     # save trained model:
     wandb.save(args.checkpoint + 'temp.pth.tar')
