@@ -45,9 +45,9 @@ wandb.config.load_model = True
 # run-20201113_144231-15y0rcng
 # run-20201113_144119-2c3v5fde
 # run-20201109_202142-1k7mpwkl
-wandb.config.load_folder_file = ('/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp','temp.pth.tar')
+wandb.config.load_folder_file = ('/home/xw17070/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp','temp.pth.tar')
 wandb.config.load_rewards_list = True
-wandb.config.load_rewards_list_file = '/home/xiaoyang/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp/rewards_list_10_items.pkl'
+wandb.config.load_rewards_list_file = '/home/xw17070/Documents/resource_packing_self_play/complete_runs/run-20201113_144231-15y0rcng/temp/rewards_list_10_items.pkl'
 config = wandb.config
 
 log = logging.getLogger(__name__)

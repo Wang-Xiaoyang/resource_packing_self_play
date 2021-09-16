@@ -14,7 +14,7 @@ from Arena import Arena
 from MCTS_bpp import MCTS
 
 import wandb
-# import time
+import time
 
 log = logging.getLogger(__name__)
 
@@ -243,6 +243,7 @@ class CoachBPP():
         self.curPlayer = 1
         episodeStep = 0
 
+        t0 = time.time()
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -266,12 +267,13 @@ class CoachBPP():
 
 
             if r != 0:
+                t_elapsed = time.time() - t0
                 # self.rewards_list.append(score)
                 # # if score  = [], does len(self.rewards_list) change?
                 # if len(self.rewards_list) > self.args.numScoresForRank:
                 #     self.rewards_list.pop(0)
                 placement_info['score'] = score
-                return placement_info  
+                return placement_info, t_elapsed  
     
     def run_eps_save(self):
         """Run eps using loaded model, save results for visualization.
@@ -282,6 +284,7 @@ class CoachBPP():
 
         eval_results = []
         generator_seed = 0
+        t_total = 0
         for i in tqdm(range(self.args.numEps), desc="Self Play"):
             self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
             # 1. re-generate items: different game
@@ -297,7 +300,9 @@ class CoachBPP():
             # items_list = self.gen.items_generator(self.args.seed)
             # self.items_list = np.copy(items_list)
 
-            eval_results.append(self.execute_ep_eval(items_list_eval))
+            placement_info, t_elapsed = self.execute_ep_eval(items_list_eval)
+            eval_results.append(placement_info)
+            t_total += t_elapsed
             # # use the same func with training; only record scores
             # self.items_list = np.copy(items_list_eval)
             # placement_info = {'placement': [],
@@ -310,3 +315,5 @@ class CoachBPP():
 
             with open('eval_results.pkl', 'wb') as f:
                 pickle.dump(eval_results, f)
+
+        print('average elapsed time', t_total/self.args.numEps)
