@@ -14,7 +14,7 @@ from Arena import Arena
 from MCTS_bpp import MCTS
 
 import wandb
-# import time
+import time
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +66,7 @@ class CoachBPP():
         placement_info = {'placement': [],
                     'score': 0,}
 
+        t0 = time.time()
         while True:
             episodeStep += 1
             bin_items_state = self.game.getBinItem(board, items_list_board)
@@ -86,10 +87,11 @@ class CoachBPP():
             
             r, score = self.game.getGameEnded(next_bin_items_state, self.items_total_area, self.rewards_list, self.args.alpha)
 
-            if r != 0:  
+            if r != 0:
+                t_elapsed = time.time() - t0
                 self.ep_score = score
                 placement_info['score'] = score
-                return placement_info
+                return placement_info, t_elapsed
 
     def learn(self):
         """
@@ -102,6 +104,7 @@ class CoachBPP():
 
         eval_results = []
         generator_seed = 0
+        t_total = 0
         for i in range(1, self.args.numIters + 1):
             log.info(f'Starting Game #{i} ...')
             np.random.seed(i-1)
@@ -117,10 +120,13 @@ class CoachBPP():
                 generator_seed += 1
 
                 self.items_list = np.copy(items_list)
-                eval_results.append(self.executeEpisode())
+                placement_info, t_elapsed = self.executeEpisode()
+                eval_results.append(placement_info)
                 # self.rewards_list.append(self.ep_score)
                 ep_scores.append(self.ep_score)
+                t_total += t_elapsed
             wandb.log({"iter scores": np.mean(ep_scores)})
+            
 
             self.rewards_list.append(self.ep_score)
             # if score  = [], does len(self.rewards_list) change?
@@ -137,6 +143,8 @@ class CoachBPP():
 
         with open('eval_results_mcts.pkl', 'wb') as f:
             pickle.dump(eval_results, f)
+            
+        print('average elapsed time', t_total/self.args.numIters)
 
         self.save_rewards_list()
 
