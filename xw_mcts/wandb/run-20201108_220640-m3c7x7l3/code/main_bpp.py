@@ -17,8 +17,8 @@ wandb.init(entity="xiaoyang",
             project="resource-packing-self-play")
 # wandb config parameters
 # W: time; H: resource
-wandb.config.binW, wandb.config.binH = 15, 15
-wandb.config.binH_min = 2
+wandb.config.binW, wandb.config.binH = 15, 10
+wandb.config.binH_min = 7
 wandb.config.virtual_bin_w, wandb.config.virtual_bin_h = 15, 15
 wandb.config.numItems, wandb.config.numBins = 10, 1
 wandb.config.numIters = 300 #50

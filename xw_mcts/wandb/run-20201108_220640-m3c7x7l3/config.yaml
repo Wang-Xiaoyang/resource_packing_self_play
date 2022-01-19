@@ -1,0 +1,103 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.8.34
+    code_path: code/main_bpp.py
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.6.9
+alpha:
+  desc: null
+  value: 0.75
+arenaCompare:
+  desc: null
+  value: 10
+batch_size:
+  desc: null
+  value: 64
+binH:
+  desc: null
+  value: 10
+binH_min:
+  desc: null
+  value: 7
+binW:
+  desc: null
+  value: 15
+cpuct:
+  desc: null
+  value: 1
+cuda:
+  desc: null
+  value: true
+dropout:
+  desc: null
+  value: 0.1
+epochs:
+  desc: null
+  value: 10
+iterStepThreshold:
+  desc: null
+  value: 50
+load_folder_file:
+  desc: null
+  value:
+  - /home/xw17070/Documents/bin-packing-r2/xw_mcts/temp
+  - best.pth.tar
+load_model:
+  desc: null
+  value: false
+load_rewards_list:
+  desc: null
+  value: false
+load_rewards_list_file:
+  desc: null
+  value: /home/xw17070/Documents/bin-packing-r2/xw_mcts/temp/rewards_list_10_items.pkl
+lr:
+  desc: null
+  value: 0.001
+maxlenOfQueue:
+  desc: null
+  value: 200000
+nnet_type:
+  desc: null
+  value: ResNet
+numBins:
+  desc: null
+  value: 1
+numEps:
+  desc: null
+  value: 20
+numItems:
+  desc: null
+  value: 10
+numIters:
+  desc: null
+  value: 300
+numItersForTrainExamplesHistory:
+  desc: null
+  value: 50
+numMCTSSims:
+  desc: null
+  value: 200
+numScoresForRank:
+  desc: null
+  value: 100
+num_channels:
+  desc: null
+  value: 256
+seed:
+  desc: null
+  value: 100
+updateThreshold:
+  desc: null
+  value: 0.6
+virtual_bin_h:
+  desc: null
+  value: 15
+virtual_bin_w:
+  desc: null
+  value: 15
