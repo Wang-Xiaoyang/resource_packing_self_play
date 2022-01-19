@@ -1,0 +1,5 @@
+Note: this is just a folder during revising, when calculating the average elapsed time.
+
+Elapsed time calculating has been added to the evaluation branches for each methods.
+
+Keep the .xlsx file, this is the record.
