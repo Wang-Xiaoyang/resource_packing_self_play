@@ -4,6 +4,22 @@ This is the code of our paper "Self-play learning strategies for resource assign
 
 Please use different branches for training, testing (validation), and comparison with heuristic methods.
 
+`bin_packing_various_height`: training.
+
+`validate_bin_packing`: validation of trained models.
+
+`vanilla-MCTS`: vanilla MCTS method.
+
+`HVRAA-heuristics`: heuristic method.
+
+`lego-heuristic`: heuristic method.
+
+----Please ignore----
+
+`master`: not in use.
+
+`bin_packing_single_height`: training using single height samples. This is not what we did in the paper.
+
 ```
 @article{wang2022self,  
   title={Self-play learning strategies for resource assignment in Open-RAN networks},  
