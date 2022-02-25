@@ -8,7 +8,7 @@ Please use different branches for training, testing (validation), and comparison
 
 `validate_bin_packing`: validation of trained models.
 
-`vanilla-MCTS`: vanilla MCTS method.
+`vanilla-MCTS`: vanilla MCTS method. This branch also contains a file for generating .gif files of bin packing results (for demo).
 
 `HVRAA-heuristics`: heuristic method.
 
